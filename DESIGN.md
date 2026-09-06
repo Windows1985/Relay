@@ -15,6 +15,10 @@ colors:
   ink-on-amber: "#1a1204"
   disabled-fill: "#3a3a32"
   disabled-shadow: "#22221d"
+  cosmetic-rainbow-blue: "#4da3ff"
+  cosmetic-rainbow-violet: "#b06bff"
+  cosmetic-chrome-shadow: "#8a8f80"
+  cosmetic-chrome-highlight: "#f4f6ee"
 typography:
   mono:
     fontFamily: "Martian Mono"
@@ -60,6 +64,11 @@ One committed accent on a near-black ground — Restrained-plus-one, applied at 
 ### Status
 - **Danger** (`#ff5c4d`): errors, streak-broken state, report actions.
 - **Ok** (`#5ce08a`): streak-survived confirmation.
+
+### Shop Cosmetics (scoped to purchasable name colours, never used elsewhere)
+Per relay-spec.md's Shop section: solids and two-stop gradients reuse the core palette; **rainbow** and **chrome** are the two cosmetics that need colors the core system doesn't otherwise use — genuinely need a full hue sweep / metallic ramp to read as their name. Confined entirely to `.name-rainbow` / `.name-chrome` in globals.css; nothing else in the product may reach for these.
+- **Rainbow sweep**: `#ff5c4d, #ffb020, #5ce08a, #4da3ff, #b06bff` — reuses Danger/Amber/Ok and adds Sky Blue (`#4da3ff`) and Signal Violet (`#b06bff`) to complete the hue cycle.
+- **Chrome ramp**: `#8a8f80` (Chrome Shadow) / `#f4f6ee` (Chrome Highlight) — a metallic gray sweep, deliberately outside the warm ink/ground family since chrome reads as chrome only when it's neutral-cool.
 
 ### Derived (button/state shades, not independent palette choices)
 - **Amber Pressed** (`#d98d10`): the gradient's dark edge and the tactile button's resting shadow — a darkened Signal Amber, not a second accent.

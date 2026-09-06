@@ -105,6 +105,7 @@ export default async function Home() {
       <div className="flex gap-4 text-sm text-ink-dim underline">
         <Link href="/g/new">Start a group</Link>
         <Link href="/g/join">Join a group</Link>
+        <Link href="/shop">Shop</Link>
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { RevealView } from "@/components/RevealView";
+import { getCosmeticsCssMap } from "@/lib/cosmetics";
 
 export default async function RevealPage({
   params,
@@ -33,9 +34,11 @@ export default async function RevealPage({
 
   const { data: submissions } = await supabase
     .from("submissions")
-    .select("user_id, payload, score, photo_path, submitted_at, hidden, profiles(username)")
+    .select("user_id, payload, score, photo_path, submitted_at, hidden, profiles(username, equipped_colour, equipped_anim)")
     .eq("round_id", roundId)
     .order("submitted_at");
+
+  const cosmeticsCss = await getCosmeticsCssMap(supabase);
 
   const hasOwnSubmission = (submissions ?? []).some((s) => s.user_id === user.id);
   if (!hasOwnSubmission) {
@@ -83,15 +86,25 @@ export default async function RevealPage({
           (round.profiles as unknown as { username: string } | null)?.username ?? null
         }
         votesCloseAt={round.votes_close_at}
-        submissions={(submissions ?? []).map((s) => ({
-          userId: s.user_id,
-          username: (s.profiles as unknown as { username: string } | null)?.username ?? "?",
-          payload: s.payload as Record<string, unknown>,
-          score: s.score,
-          hidden: s.hidden,
-          photoUrl: signedUrls[s.user_id] ?? null,
-          voteCount: (votes ?? []).filter((v) => v.target_user_id === s.user_id).length,
-        }))}
+        cosmeticsCss={cosmeticsCss}
+        submissions={(submissions ?? []).map((s) => {
+          const profile = s.profiles as unknown as {
+            username: string;
+            equipped_colour: string | null;
+            equipped_anim: string | null;
+          } | null;
+          return {
+            userId: s.user_id,
+            username: profile?.username ?? "?",
+            equippedColour: profile?.equipped_colour ?? null,
+            equippedAnim: profile?.equipped_anim ?? null,
+            payload: s.payload as Record<string, unknown>,
+            score: s.score,
+            hidden: s.hidden,
+            photoUrl: signedUrls[s.user_id] ?? null,
+            voteCount: (votes ?? []).filter((v) => v.target_user_id === s.user_id).length,
+          };
+        })}
       />
     </main>
   );

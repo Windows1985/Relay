@@ -117,3 +117,75 @@ body {
   outline: 2px solid var(--amber);
   outline-offset: 1px;
 }
+
+/* Name cosmetics: colour treatments loop continuously (they're a color
+   choice, not an "entry" moment); entry animations below run once. */
+@keyframes name-rainbow {
+  to { background-position: 200% center; }
+}
+.name-rainbow {
+  background: linear-gradient(90deg, #ff5c4d, #ffb020, #5ce08a, #4da3ff, #b06bff, #ff5c4d);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: name-rainbow 6s linear infinite;
+}
+
+@keyframes name-chrome {
+  to { background-position: 200% center; }
+}
+.name-chrome {
+  background: linear-gradient(100deg, #8a8f80 20%, #f4f6ee 45%, #8a8f80 60%, #f4f6ee 80%, #8a8f80);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: name-chrome 4s linear infinite;
+}
+
+@keyframes name-glitch {
+  0%, 92%, 100% { text-shadow: none; transform: translateX(0); }
+  93% { text-shadow: -2px 0 var(--danger), 2px 0 var(--ok); transform: translateX(-1px); }
+  95% { text-shadow: 2px 0 var(--danger), -2px 0 var(--ok); transform: translateX(1px); }
+  97% { text-shadow: none; transform: translateX(0); }
+}
+.name-glitch {
+  color: var(--ink);
+  animation: name-glitch 3.5s steps(1) infinite;
+}
+
+@keyframes entry-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes entry-fade-up {
+  from { transform: translateY(0.5em); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes entry-slide-in {
+  from { transform: translateX(-1em); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes entry-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+@keyframes entry-typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.entry-pop { animation: entry-pop 0.4s ease-out 1; }
+.entry-fade-up { animation: entry-fade-up 0.4s ease-out 1; }
+.entry-slide-in { animation: entry-slide-in 0.4s ease-out 1; }
+.entry-shake { animation: entry-shake 0.4s ease-out 1; }
+.entry-typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: entry-typewriter 0.6s steps(20, end) 1;
+}

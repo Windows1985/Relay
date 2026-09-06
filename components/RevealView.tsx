@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Name } from "@/components/Name";
+import { ANIM_CLASS, type CosmeticCss } from "@/lib/cosmetics";
 
 type Submission = {
   userId: string;
   username: string;
+  equippedColour: string | null;
+  equippedAnim: string | null;
   payload: Record<string, unknown>;
   score: number | null;
   hidden: boolean;
@@ -28,6 +32,7 @@ export function RevealView({
   freezeUsedByUsername,
   votesCloseAt,
   submissions,
+  cosmeticsCss,
 }: {
   roundId: string;
   currentUserId: string;
@@ -43,6 +48,7 @@ export function RevealView({
   freezeUsedByUsername: string | null;
   votesCloseAt: string | null;
   submissions: Submission[];
+  cosmeticsCss: Record<string, CosmeticCss>;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -107,7 +113,11 @@ export function RevealView({
               className={`bezel-inset flex flex-col gap-2 p-4 ${isWinner ? "ring-2 ring-amber" : ""}`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium">{s.username}</span>
+                <Name
+                  username={s.username}
+                  colourCss={s.equippedColour ? cosmeticsCss[s.equippedColour] ?? null : null}
+                  animClass={s.equippedAnim ? ANIM_CLASS[s.equippedAnim] ?? null : null}
+                />
                 {isWinner && <span className="font-mono led-text text-xs uppercase">Winner</span>}
                 {scoring !== "vote" && scoring !== "tally" && s.score !== null && (
                   <span className="font-mono text-sm text-ink-dim tabular-nums">{s.score}</span>

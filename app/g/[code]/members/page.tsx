@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCosmeticsCssMap } from "@/lib/cosmetics";
+import { Name } from "@/components/Name";
 import { RemoveMemberButton } from "./remove-member-button";
 
 export default async function MembersPage({
@@ -22,10 +24,11 @@ export default async function MembersPage({
 
   const { data: members } = await supabase
     .from("memberships")
-    .select("user_id, joined_at, profiles(username)")
+    .select("user_id, joined_at, profiles(username, equipped_colour)")
     .eq("group_id", group.id)
     .order("joined_at");
 
+  const cosmeticsCss = await getCosmeticsCssMap(supabase);
   const isCreator = user?.id === group.created_by;
 
   return (
@@ -35,19 +38,26 @@ export default async function MembersPage({
           Members
         </h1>
         <ul className="flex flex-col gap-2">
-          {members?.map((m) => (
-            <li key={m.user_id} className="bezel-inset flex items-center justify-between px-3 py-2">
-              <span>{(m.profiles as unknown as { username: string } | null)?.username}</span>
-              {(isCreator || m.user_id === user?.id) && (
-                <RemoveMemberButton
-                  groupId={group.id}
-                  userId={m.user_id}
-                  inviteCode={group.invite_code}
-                  isSelf={m.user_id === user?.id}
+          {members?.map((m) => {
+            const profile = m.profiles as unknown as { username: string; equipped_colour: string | null } | null;
+            return (
+              <li key={m.user_id} className="bezel-inset flex items-center justify-between px-3 py-2">
+                <Name
+                  username={profile?.username ?? "?"}
+                  colourCss={profile?.equipped_colour ? cosmeticsCss[profile.equipped_colour] ?? null : null}
+                  animClass={null}
                 />
-              )}
-            </li>
-          ))}
+                {(isCreator || m.user_id === user?.id) && (
+                  <RemoveMemberButton
+                    groupId={group.id}
+                    userId={m.user_id}
+                    inviteCode={group.invite_code}
+                    isSelf={m.user_id === user?.id}
+                  />
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </main>
