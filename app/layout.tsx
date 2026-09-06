@@ -1,17 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Martian_Mono } from "next/font/google";
+import { Fredoka, Nunito } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { TabBar } from "@/components/TabBar";
 import "./globals.css";
 
-// Segmented-display character for numerals, timers, and the wordmark — the
-// "hardware" register of the direction. Body/labels use the system stack:
-// Operate-mode surfaces are explicitly licensed to skip a display webfont
-// where a workhorse face reads fine, and the panel-hardware language does
-// its work through layout and color, not typography, everywhere else.
-const martianMono = Martian_Mono({
-  variable: "--font-martian-mono",
+// Fredoka: rounded, bold, playful — the display and numeral voice.
+// Nunito: friendly rounded terminals, very legible at small sizes — body/UI.
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
   subsets: ["latin"],
-  weight: ["400", "600", "800"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -20,15 +24,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0d0a",
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${martianMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <ServiceWorkerRegister />
         {children}
+        <TabBar />
       </body>
     </html>
   );

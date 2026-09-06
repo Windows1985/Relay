@@ -18,8 +18,13 @@ export default async function JoinPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-8">
-      <JoinForm />
+    <main className="flex flex-1 flex-col items-center justify-center p-5">
+      <div className="w-full max-w-sm">
+        <JoinForm />
+        <p className="mt-4 text-center text-xs text-ink-2">
+          One game a night for your group chat. Nobody sees answers until they&apos;ve played.
+        </p>
+      </div>
     </main>
   );
 }

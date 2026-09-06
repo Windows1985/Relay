@@ -16,31 +16,30 @@ export default async function ShopPage() {
     .order("price", { nullsFirst: false });
 
   const { data: owned } = await supabase.from("owned_cosmetics").select("cosmetic_id").eq("user_id", user.id);
-  const ownedIds = new Set((owned ?? []).map((o) => o.cosmetic_id));
-
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, equipped_colour, equipped_anim")
+    .select("username, equipped_colour, equipped_anim, is_admin")
     .eq("id", user.id)
     .single();
-
   const { data: bal } = await supabase.from("token_balances").select("balance").eq("user_id", user.id).maybeSingle();
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 p-6">
-      <div className="bezel flex w-full max-w-sm flex-col items-center gap-1 px-6 py-6">
-        <h1 className="font-mono led-text text-xl font-bold uppercase tracking-widest">Shop</h1>
-        <p className="font-mono text-2xl font-bold tabular-nums text-ink">{bal?.balance ?? 0}</p>
-        <p className="text-xs text-ink-dim uppercase tracking-widest">tokens</p>
-      </div>
+    <main className="page flex flex-col gap-5">
+      <header className="flex items-center justify-between py-1">
+        <h1 className="font-display text-2xl font-bold">Shop</h1>
+        <span className="badge-sunset">
+          <span className="num">{bal?.balance ?? 0}</span> tokens
+        </span>
+      </header>
 
       <ShopList
         cosmetics={cosmetics ?? []}
-        ownedIds={[...ownedIds]}
+        ownedIds={(owned ?? []).map((o) => o.cosmetic_id)}
         equippedColour={profile?.equipped_colour ?? null}
         equippedAnim={profile?.equipped_anim ?? null}
         username={profile?.username ?? "you"}
         balance={bal?.balance ?? 0}
+        isAdmin={!!profile?.is_admin}
       />
     </main>
   );

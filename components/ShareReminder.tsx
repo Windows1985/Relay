@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ShareIcon } from "@/components/icons";
 
 export function ShareReminder({
   groupName,
@@ -12,7 +13,13 @@ export function ShareReminder({
   notPlayed: number;
 }) {
   const [copied, setCopied] = useState(false);
-  if (notPlayed <= 0) return null;
+  if (notPlayed <= 0) {
+    return (
+      <button disabled className="btn-secondary w-full">
+        Everyone&apos;s in — reveal is coming
+      </button>
+    );
+  }
 
   const text = `${groupName}: ${hoursLeft} hour${hoursLeft === 1 ? "" : "s"} left, ${notPlayed} of you ${
     notPlayed === 1 ? "hasn't" : "haven't"
@@ -33,8 +40,9 @@ export function ShareReminder({
   }
 
   return (
-    <button onClick={send} className="btn-ghost w-full py-2 text-xs uppercase tracking-wide">
-      {copied ? "Copied" : "Nudge the group chat"}
+    <button onClick={send} className="btn-secondary w-full">
+      <ShareIcon size={18} />
+      {copied ? "Copied to clipboard" : `Nudge the ${notPlayed} who haven't played`}
     </button>
   );
 }

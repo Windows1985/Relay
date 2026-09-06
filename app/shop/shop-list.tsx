@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Name } from "@/components/Name";
 import { ANIM_CLASS, type CosmeticCss } from "@/lib/cosmetics";
+import { CheckIcon, FlameIcon } from "@/components/icons";
 
 type Cosmetic = {
   id: string;
@@ -14,6 +15,10 @@ type Cosmetic = {
   css: CosmeticCss;
 };
 
+function label(c: Cosmetic) {
+  return c.id.replace(/^(colour|anim)_/, "").replace(/_/g, " ");
+}
+
 export function ShopList({
   cosmetics,
   ownedIds,
@@ -21,6 +26,7 @@ export function ShopList({
   equippedAnim,
   username,
   balance,
+  isAdmin,
 }: {
   cosmetics: Cosmetic[];
   ownedIds: string[];
@@ -28,101 +34,102 @@ export function ShopList({
   equippedAnim: string | null;
   username: string;
   balance: number;
+  isAdmin: boolean;
 }) {
   const router = useRouter();
   const [owned, setOwned] = useState(new Set(ownedIds));
   const [equipped, setEquipped] = useState({ colour: equippedColour, anim: equippedAnim });
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [animKey, setAnimKey] = useState(0);
 
-  function buy(cosmetic: Cosmetic) {
-    setBusyId(cosmetic.id);
+  function run(id: string, rpc: string, args: Record<string, unknown>, onOk: () => void) {
+    setBusyId(id);
     setError(null);
     startTransition(async () => {
       const supabase = createClient();
-      const { error: err } = await supabase.rpc("buy_cosmetic", { p_cosmetic_id: cosmetic.id });
+      const { error: err } = await supabase.rpc(rpc, args);
       setBusyId(null);
       if (err) return setError(err.message);
-      setOwned((prev) => new Set(prev).add(cosmetic.id));
+      onOk();
       router.refresh();
     });
   }
 
-  function equip(cosmetic: Cosmetic) {
-    setBusyId(cosmetic.id);
-    setError(null);
-    startTransition(async () => {
-      const supabase = createClient();
-      const { error: err } = await supabase.rpc("equip_cosmetic", { p_cosmetic_id: cosmetic.id });
-      setBusyId(null);
-      if (err) return setError(err.message);
-      setEquipped((prev) => ({ ...prev, [cosmetic.kind === "colour" ? "colour" : "anim"]: cosmetic.id }));
+  const buy = (c: Cosmetic) => run(c.id, "buy_cosmetic", { p_cosmetic_id: c.id }, () => setOwned((p) => new Set(p).add(c.id)));
+  const grant = (c: Cosmetic) => run(c.id, "admin_grant_cosmetic", { p_cosmetic_id: c.id }, () => setOwned((p) => new Set(p).add(c.id)));
+  const equip = (c: Cosmetic) =>
+    run(c.id, "equip_cosmetic", { p_cosmetic_id: c.id }, () => {
+      setEquipped((p) => ({ ...p, [c.kind]: c.id }));
+      setAnimKey((k) => k + 1);
     });
-  }
 
-  const preview = (
-    <div className="bezel-inset px-4 py-3 text-center">
-      <Name
-        username={username}
-        colourCss={equipped.colour ? cosmetics.find((c) => c.id === equipped.colour)?.css ?? null : null}
-        animClass={null}
-      />
-    </div>
-  );
+  const previewCss = equipped.colour ? cosmetics.find((c) => c.id === equipped.colour)?.css ?? null : null;
+  const previewAnim = equipped.anim ? ANIM_CLASS[equipped.anim] ?? null : null;
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-4">
-      {preview}
-      {error && <p className="text-center text-sm text-danger">{error}</p>}
+    <div className="flex flex-col gap-5">
+      <section className="card flex flex-col items-center gap-2 p-5 text-center">
+        <p className="text-xs font-bold uppercase tracking-wide text-ink-2">How your name looks</p>
+        <div key={animKey} className="font-display text-3xl font-semibold">
+          <Name username={username} colourCss={previewCss} animClass={previewAnim} />
+        </div>
+        <p className="text-xs text-ink-2">Shows up everywhere your name does — every group, every reveal.</p>
+      </section>
+
+      {error && <p className="text-center text-sm font-bold text-danger">{error}</p>}
 
       {(["colour", "anim"] as const).map((kind) => (
-        <div key={kind} className="flex flex-col gap-2">
-          <h2 className="text-xs uppercase tracking-widest text-ink-dim">
-            {kind === "colour" ? "Name colours" : "Entry animations"}
-          </h2>
-          {cosmetics
-            .filter((c) => c.kind === kind)
-            .map((c) => {
-              const isOwned = owned.has(c.id);
-              const isEquipped = kind === "colour" ? equipped.colour === c.id : equipped.anim === c.id;
-              const gated = c.streak_gate !== null;
-              return (
-                <div key={c.id} className="bezel-inset flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    {kind === "colour" ? (
-                      <Name username={c.id.replace(/^colour_/, "").replace(/_/g, " ")} colourCss={c.css} animClass={null} />
-                    ) : (
-                      <span className={ANIM_CLASS[c.id] ?? ""}>{c.id.replace(/^anim_/, "").replace(/_/g, " ")}</span>
-                    )}
-                    {gated && <span className="text-xs text-ink-dim">{c.streak_gate}-day streak</span>}
-                  </div>
+        <section key={kind} className="flex flex-col gap-3">
+          <h2 className="px-1 font-display text-lg font-semibold">{kind === "colour" ? "Name colours" : "Entrance moves"}</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {cosmetics
+              .filter((c) => c.kind === kind)
+              .map((c) => {
+                const isOwned = owned.has(c.id);
+                const isEquipped = equipped[kind] === c.id;
+                const gated = c.streak_gate !== null;
+                const canAfford = balance >= (c.price ?? 0);
+                return (
+                  <div key={c.id} className="card flex flex-col items-center gap-3 p-4 text-center">
+                    <div className="flex h-12 items-center justify-center font-display text-lg font-semibold">
+                      {kind === "colour" ? (
+                        <Name username={username} colourCss={c.css} animClass={null} />
+                      ) : (
+                        <span className={ANIM_CLASS[c.id] ?? ""}>{username}</span>
+                      )}
+                    </div>
+                    <p className="text-xs font-bold capitalize text-ink-2">{label(c)}</p>
 
-                  {isEquipped ? (
-                    <span className="text-xs text-ok uppercase">Equipped</span>
-                  ) : isOwned ? (
-                    <button
-                      onClick={() => equip(c)}
-                      disabled={pending && busyId === c.id}
-                      className="btn-ghost px-3 py-1 text-xs uppercase disabled:opacity-50"
-                    >
-                      Equip
-                    </button>
-                  ) : gated ? (
-                    <span className="text-xs text-ink-dim">Earned, not bought</span>
-                  ) : (
-                    <button
-                      onClick={() => buy(c)}
-                      disabled={(pending && busyId === c.id) || balance < (c.price ?? 0)}
-                      className="btn-tactile px-3 py-1 text-xs font-bold uppercase disabled:opacity-40"
-                    >
-                      {c.price} tokens
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-        </div>
+                    {isEquipped ? (
+                      <span className="chip text-ok">
+                        <CheckIcon size={14} /> Wearing
+                      </span>
+                    ) : isOwned ? (
+                      <button onClick={() => equip(c)} disabled={busyId === c.id} className="btn-secondary min-h-10 w-full text-sm">
+                        Wear it
+                      </button>
+                    ) : gated ? (
+                      <span className="chip">
+                        <FlameIcon size={12} /> {c.streak_gate}-day streak
+                      </span>
+                    ) : (
+                      <button onClick={() => buy(c)} disabled={busyId === c.id || !canAfford} className="btn-primary min-h-10 w-full text-sm">
+                        {c.price} tokens
+                      </button>
+                    )}
+
+                    {isAdmin && !isOwned && (
+                      <button onClick={() => grant(c)} disabled={busyId === c.id} className="text-xs font-bold text-g3">
+                        Free (admin)
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </section>
       ))}
     </div>
   );

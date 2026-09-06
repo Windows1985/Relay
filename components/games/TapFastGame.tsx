@@ -33,36 +33,32 @@ export function TapFastGame({ roundId, durationMs }: { roundId: string; duration
     setCount(countRef.current);
   }
 
+  if (phase === "ready") {
+    return (
+      <button onClick={() => setPhase("tapping")} className="btn-primary w-full">
+        Ready — start the clock
+      </button>
+    );
+  }
+
+  const progress = Math.max(0, msLeft / durationMs);
   return (
-    <div className="bezel flex w-full max-w-sm flex-col items-center gap-6 px-6 py-10 text-center">
-      <div className="font-mono led-text text-xl font-bold uppercase tracking-widest">Tap fast</div>
-
-      {phase === "ready" && (
-        <button
-          onClick={() => setPhase("tapping")}
-          className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide"
-        >
-          Ready
-        </button>
-      )}
-
-      {phase === "tapping" && (
-        <>
-          <button
-            onClick={tap}
-            className="btn-tactile flex h-40 w-40 items-center justify-center rounded-full text-4xl font-bold"
-          >
-            {count}
-          </button>
-          <div className="bezel-inset w-full py-2 text-sm text-ink-dim">
-            {(msLeft / 1000).toFixed(1)}s left
-          </div>
-        </>
-      )}
-
-      {phase === "done" && <div className="font-mono led-text text-4xl font-bold tabular-nums">{count}</div>}
-      {submitting && <p className="text-sm text-ink-dim">Transmitting...</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
-    </div>
+    <>
+      <button
+        onPointerDown={phase === "tapping" ? tap : undefined}
+        disabled={phase !== "tapping"}
+        className="btn-primary num h-52 w-52 text-6xl select-none"
+        aria-label="Tap"
+      >
+        {count}
+      </button>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-line">
+        <div className="h-full rounded-full transition-[width] duration-100" style={{ width: `${progress * 100}%`, background: "var(--sunset)" }} />
+      </div>
+      <p className="text-sm font-bold text-ink-2">
+        {phase === "done" ? (submitting ? "Posting…" : `${count} taps. Done!`) : `${(msLeft / 1000).toFixed(1)}s left`}
+      </p>
+      {error && <p className="text-sm font-bold text-danger">{error}</p>}
+    </>
   );
 }

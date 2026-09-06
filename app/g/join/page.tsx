@@ -1,35 +1,36 @@
 "use client";
 
 import { Suspense, useActionState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { joinByCode } from "./actions";
+import { ChevronLeftIcon } from "@/components/icons";
 
 function JoinGroupForm() {
   const params = useSearchParams();
   const invalid = params.get("error") === "invalid";
 
   const [state, formAction, pending] = useActionState(joinByCode, {
-    error: invalid ? "That invite code doesn't match a group." : null,
+    error: invalid ? "That code doesn't match a group. Check it and try again." : null,
   } as { error: string | null });
 
   return (
-    <form action={formAction} className="bezel flex w-full max-w-sm flex-col gap-3 px-6 py-10">
-      <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
-        Join a group
-      </h1>
-      <input
-        name="code"
-        placeholder="6-character code"
-        required
-        maxLength={6}
-        className="input-bezel px-3 py-2 uppercase"
-      />
-      {state.error && <p className="text-sm text-danger">{state.error}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn-tactile py-3 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
-      >
+    <form action={formAction} className="card flex flex-col gap-4 p-5">
+      <label className="flex flex-col gap-1.5 text-sm font-bold">
+        Invite code
+        <input
+          name="code"
+          placeholder="ABC123"
+          required
+          maxLength={6}
+          autoFocus
+          autoCapitalize="characters"
+          className="input num text-center text-2xl uppercase tracking-[0.3em]"
+        />
+      </label>
+      <p className="text-xs text-ink-2">Six characters, from whoever started the group. Or just tap their invite link.</p>
+      {state.error && <p className="text-sm font-bold text-danger">{state.error}</p>}
+      <button type="submit" disabled={pending} className="btn-primary w-full">
         Join
       </button>
     </form>
@@ -38,7 +39,13 @@ function JoinGroupForm() {
 
 export default function JoinGroupPage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-8">
+    <main className="page flex flex-col gap-4">
+      <header className="flex items-center gap-2 py-1">
+        <Link href="/" className="-ml-2 p-2" aria-label="Back">
+          <ChevronLeftIcon size={24} />
+        </Link>
+        <h1 className="font-display text-2xl font-bold">Join a group</h1>
+      </header>
       <Suspense>
         <JoinGroupForm />
       </Suspense>

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { GameShell } from "@/components/games/GameShell";
 import { MotionGame } from "@/components/games/MotionGame";
 import { StopAtTargetGame } from "@/components/games/StopAtTargetGame";
 import { TapFastGame } from "@/components/games/TapFastGame";
@@ -7,6 +9,7 @@ import { ReactionGame } from "@/components/games/ReactionGame";
 import { PhotoGame } from "@/components/games/PhotoGame";
 import { TextGame } from "@/components/games/TextGame";
 import { NamePickGame } from "@/components/games/NamePickGame";
+import { CheckIcon, ChevronLeftIcon } from "@/components/icons";
 
 export default async function PlayPage({
   params,
@@ -40,47 +43,53 @@ export default async function PlayPage({
     target: number | null;
     duration_ms: number | null;
   };
-  const prompt = round.prompts as unknown as { text: string } | null;
+  const prompt = (round.prompts as unknown as { text: string } | null)?.text ?? null;
 
   let rosterUsernames: { id: string; username: string }[] = [];
   if (mode.input_type === "name_pick") {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, username")
-      .in("id", round.roster);
+    const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", round.roster);
     rosterUsernames = (profiles ?? []).map((p) => ({ id: p.id, username: p.username ?? "?" }));
   }
 
+  let game: React.ReactNode;
+  if (mode.input_type === "motion") game = <MotionGame roundId={round.id} durationMs={mode.duration_ms ?? 15000} />;
+  else if (round.mode_id === "stop10") game = <StopAtTargetGame roundId={round.id} targetMs={mode.target ?? 10000} />;
+  else if (round.mode_id === "tap_fast") game = <TapFastGame roundId={round.id} durationMs={mode.duration_ms ?? 10000} />;
+  else if (round.mode_id === "reaction") game = <ReactionGame roundId={round.id} />;
+  else if (mode.input_type === "photo") game = <PhotoGame roundId={round.id} />;
+  else if (mode.input_type === "text") game = <TextGame roundId={round.id} />;
+  else if (mode.input_type === "name_pick")
+    game = <NamePickGame roundId={round.id} roster={rosterUsernames} currentUserId={user.id} />;
+  else game = <p className="text-sm text-ink-2">This game isn&apos;t playable on this device.</p>;
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
+    <main className="page flex flex-col gap-4">
+      <header className="flex items-center gap-2 py-1">
+        <Link href="/" className="-ml-2 p-2" aria-label="Back home">
+          <ChevronLeftIcon size={24} />
+        </Link>
+        <span className="text-sm font-bold text-ink-2">Tonight&apos;s game</span>
+      </header>
+
       {existing ? (
-        <div className="bezel flex w-full max-w-sm flex-col items-center gap-2 px-6 py-10 text-center">
-          <div className="font-mono led-text text-xl font-bold uppercase tracking-widest">
-            Transmitted
+        <section className="card flex flex-col items-center gap-4 p-6 text-center">
+          <div className="ring">
+            <div className="ring-inner h-28 w-28">
+              <CheckIcon size={36} className="text-g3" />
+            </div>
           </div>
-          <p className="text-sm text-ink-dim">You&apos;ve already played tonight. Reveal is next.</p>
-        </div>
-      ) : mode.input_type === "motion" ? (
-        <MotionGame roundId={round.id} durationMs={mode.duration_ms ?? 15000} />
-      ) : mode.input_type === "timing" && round.mode_id === "stop10" ? (
-        <StopAtTargetGame roundId={round.id} targetMs={mode.target ?? 10000} />
-      ) : mode.input_type === "timing" && round.mode_id === "tap_fast" ? (
-        <TapFastGame roundId={round.id} durationMs={mode.duration_ms ?? 10000} />
-      ) : mode.input_type === "timing" && round.mode_id === "reaction" ? (
-        <ReactionGame roundId={round.id} />
-      ) : mode.input_type === "photo" ? (
-        <PhotoGame roundId={round.id} promptText={prompt?.text ?? "Snap it."} />
-      ) : mode.input_type === "text" ? (
-        <TextGame roundId={round.id} promptText={prompt?.text ?? "Answer honestly."} />
-      ) : mode.input_type === "name_pick" ? (
-        <NamePickGame
-          roundId={round.id}
-          promptText={prompt?.text ?? "Pick someone."}
-          roster={rosterUsernames}
-          currentUserId={user.id}
-        />
+          <div>
+            <h1 className="font-display text-2xl font-bold">You&apos;re in</h1>
+            <p className="text-sm text-ink-2">The reveal unlocks once everyone&apos;s played.</p>
+          </div>
+          <Link href="/" className="btn-primary w-full">
+            Back home
+          </Link>
+        </section>
       ) : (
-        <div className="text-ink-dim">Unsupported game mode.</div>
+        <GameShell modeId={round.mode_id} promptText={prompt}>
+          {game}
+        </GameShell>
       )}
     </main>
   );

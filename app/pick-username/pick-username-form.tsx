@@ -14,15 +14,12 @@ export function PickUsernameForm() {
         name="username"
         placeholder="Username"
         autoComplete="username"
+        autoCapitalize="none"
         required
-        className="input-bezel px-3 py-2"
+        className="input"
       />
-      {state.error && <p className="text-sm text-danger">{state.error}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn-tactile py-3 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
-      >
+      {state.error && <p className="text-sm font-bold text-danger">{state.error}</p>}
+      <button type="submit" disabled={pending} className="btn-primary w-full">
         Continue
       </button>
     </form>

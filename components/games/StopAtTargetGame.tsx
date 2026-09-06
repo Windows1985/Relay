@@ -23,30 +23,36 @@ export function StopAtTargetGame({ roundId, targetMs }: { roundId: string; targe
     submit({ value: elapsed });
   }
 
-  return (
-    <div className="bezel flex w-full max-w-sm flex-col items-center gap-6 px-6 py-10 text-center">
-      <div className="font-mono led-text text-xl font-bold uppercase tracking-widest">
-        Stop at {(targetMs / 1000).toFixed(2)}s
-      </div>
-      <p className="text-sm text-ink-dim">No clock. Just your sense of time.</p>
-
-      {phase === "ready" && (
-        <button onClick={start} className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide">
-          Start
-        </button>
-      )}
-      {phase === "running" && (
-        <button onClick={stop} className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide">
-          Stop
-        </button>
-      )}
-      {phase === "done" && resultMs !== null && (
-        <div className="font-mono led-text text-4xl font-bold tabular-nums">
-          {(resultMs / 1000).toFixed(2)}s
+  if (phase === "done" && resultMs !== null) {
+    const off = Math.abs(resultMs - targetMs);
+    return (
+      <>
+        <div className="ring">
+          <div className="ring-inner h-44 w-44">
+            <span className="num text-5xl font-semibold">{(resultMs / 1000).toFixed(2)}</span>
+            <span className="text-xs font-bold text-ink-2">seconds</span>
+          </div>
         </div>
-      )}
-      {submitting && <p className="text-sm text-ink-dim">Transmitting...</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
-    </div>
+        <p className="text-sm font-bold text-ink-2">
+          {off < 50 ? "Unreal." : off < 300 ? "Close!" : `${(off / 1000).toFixed(2)}s off`} {submitting && "· Posting…"}
+        </p>
+        {error && <p className="text-sm font-bold text-danger">{error}</p>}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <button
+        onClick={phase === "ready" ? start : stop}
+        className="btn-primary h-52 w-52 text-4xl"
+        aria-label={phase === "ready" ? "Start the timer" : "Stop the timer"}
+      >
+        {phase === "ready" ? "Start" : "Stop"}
+      </button>
+      <p className="text-sm font-bold text-ink-2">
+        {phase === "ready" ? "No clock. Just your gut." : "Counting… tap at exactly 10.00"}
+      </p>
+    </>
   );
 }

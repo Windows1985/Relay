@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { deriveRoundPhase, type RoundTimestamps } from "@/lib/round";
 import { ShareReminder } from "@/components/ShareReminder";
+import { CheckIcon, LockIcon } from "@/components/icons";
 
 type Group = {
   invite_code: string;
@@ -13,12 +14,16 @@ type Group = {
 };
 
 function formatCountdown(ms: number): string {
-  if (ms <= 0) return "00:00:00";
+  if (ms <= 0) return "00:00";
   const totalSeconds = Math.floor(ms / 1000);
-  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const h = Math.floor(totalSeconds / 3600);
   const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
   const s = String(totalSeconds % 60).padStart(2, "0");
-  return `${h}:${m}:${s}`;
+  return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+}
+
+function timeLabel(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 export function ChannelStatus({
@@ -50,12 +55,8 @@ export function ChannelStatus({
     return () => clearInterval(tick);
   }, []);
 
-  // Poll the server for phase transitions tick() makes on its own schedule
-  // (reveal, settle) — the client can only compute the opens-at countdown
-  // itself. Deliberately runs once (empty deps): router.refresh is captured
-  // once via closure, and re-keying this effect off `router` risked
-  // tearing down and rebuilding the interval on every refresh if that
-  // object isn't referentially stable across renders.
+  // Poll for the phase transitions tick() makes on its own schedule. Runs
+  // once: router.refresh is captured via closure.
   useEffect(() => {
     const poll = setInterval(() => router.refresh(), 15000);
     return () => clearInterval(poll);
@@ -63,83 +64,108 @@ export function ChannelStatus({
   }, []);
 
   const phase = deriveRoundPhase(round, now, hasSubmitted, hasVoted);
+  const live = phase.kind === "live" || phase.kind === "voting" || phase.kind === "settled";
+  const played = `${submittedCount}${rosterSize ? ` of ${rosterSize}` : ""} played`;
+
+  let ringContent: React.ReactNode;
+  let headline: string;
+  let sub: string;
+  let action: React.ReactNode;
+
+  if (phase.kind === "no_round" || phase.kind === "scheduled") {
+    const at = phase.kind === "scheduled" ? phase.opensAt.getTime() : new Date(estimatedOpensAt).getTime();
+    ringContent = (
+      <>
+        <LockIcon size={26} className="text-ink-2" />
+        <span className="num text-3xl font-semibold text-ink">{formatCountdown(at - now.getTime())}</span>
+      </>
+    );
+    headline = "Tonight's game is locked";
+    sub = `Opens at ${timeLabel(estimatedOpensAt)}. Nobody knows what it is yet.`;
+    action = (
+      <button disabled className="btn-primary w-full">
+        Opens at {timeLabel(estimatedOpensAt)}
+      </button>
+    );
+  } else if (phase.kind === "live" && !phase.hasSubmitted) {
+    ringContent = (
+      <>
+        <span className="font-display text-3xl font-semibold text-ink">LIVE</span>
+        <span className="text-xs font-bold text-ink-2">{played}</span>
+      </>
+    );
+    headline = "Tonight's game is on";
+    sub = "Play to unlock everyone's answers.";
+    action = (
+      <Link href={`/play/${roundId}`} className="btn-primary w-full">
+        Play now
+      </Link>
+    );
+  } else if (phase.kind === "live") {
+    ringContent = (
+      <>
+        <CheckIcon size={28} className="text-g3" />
+        <span className="num text-2xl font-semibold text-ink">
+          {submittedCount}
+          {rosterSize ? `/${rosterSize}` : ""}
+        </span>
+      </>
+    );
+    headline = "You're in";
+    sub = `Reveal drops when everyone's played or at ${timeLabel(estimatedWindowEnd)}.`;
+    action = (
+      <ShareReminder
+        groupName={group.name}
+        hoursLeft={Math.max(1, Math.ceil((new Date(estimatedWindowEnd).getTime() - now.getTime()) / 3600000))}
+        notPlayed={Math.max(0, (rosterSize ?? 0) - submittedCount)}
+      />
+    );
+  } else if (phase.kind === "voting") {
+    ringContent = (
+      <>
+        <span className="font-display text-2xl font-semibold text-ink">Vote</span>
+        <span className="text-xs font-bold text-ink-2">{played}</span>
+      </>
+    );
+    headline = phase.hasVoted ? "Your vote's in" : "Revealed — pick a winner";
+    sub = phase.hasVoted ? "Results land when voting closes." : "Everyone's answers are open. Tap a heart.";
+    action = (
+      <Link href={`/reveal/${roundId}`} className="btn-primary w-full">
+        {phase.hasVoted ? "See everyone's answers" : "Vote now"}
+      </Link>
+    );
+  } else {
+    ringContent = (
+      <>
+        <span className="font-display text-2xl font-semibold text-ink">Done</span>
+        <span className="text-xs font-bold text-ink-2">{played}</span>
+      </>
+    );
+    headline = "Tonight's revealed";
+    sub = "See who won and whether the streak lived.";
+    action = (
+      <Link href={`/reveal/${roundId}`} className="btn-primary w-full">
+        See the reveal
+      </Link>
+    );
+  }
 
   return (
-    <div className="bezel flex w-full flex-col items-center gap-6 px-6 py-10 text-center">
-      <div className="text-xs tracking-[0.3em] text-ink-dim uppercase">
-        {group.name} &middot; streak {group.streak}
+    <section className="card flex w-full flex-col items-center gap-4 p-6 text-center">
+      <div className={`ring ${live ? "" : "ring-muted"} ${phase.kind === "live" && phase.hasSubmitted ? "ring-complete" : ""}`}>
+        <div className="ring-inner h-40 w-40">{ringContent}</div>
       </div>
 
-      {phase.kind === "no_round" && (
-        <>
-          <div className="font-mono led-text text-5xl font-bold tabular-nums sm:text-6xl">
-            {formatCountdown(new Date(estimatedOpensAt).getTime() - now.getTime())}
-          </div>
-          <div className="text-sm text-ink-dim">until tonight&apos;s channel opens</div>
-        </>
-      )}
+      <div className="flex flex-col gap-1">
+        <h2 className="font-display text-xl font-semibold">{headline}</h2>
+        <p className="text-sm text-ink-2">{sub}</p>
+      </div>
 
-      {phase.kind === "scheduled" && (
-        <>
-          <div className="font-mono led-text text-5xl font-bold tabular-nums sm:text-6xl">
-            {formatCountdown(phase.opensAt.getTime() - now.getTime())}
-          </div>
-          <div className="text-sm text-ink-dim">until tonight&apos;s channel opens</div>
-        </>
-      )}
+      <div className="w-full">{action}</div>
 
-      {phase.kind === "live" && !phase.hasSubmitted && roundId && (
-        <>
-          <div className="font-mono led-text text-2xl font-bold uppercase tracking-widest">Live</div>
-          <Link
-            href={`/play/${roundId}`}
-            className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide"
-          >
-            Play tonight&apos;s game
-          </Link>
-        </>
-      )}
-
-      {phase.kind === "live" && phase.hasSubmitted && (
-        <>
-          <div className="font-mono led-text text-3xl font-bold tabular-nums">
-            {submittedCount}
-            {rosterSize ? ` / ${rosterSize}` : ""}
-          </div>
-          <div className="text-sm text-ink-dim">transmitted &middot; waiting on the rest of the group</div>
-          <ShareReminder
-            groupName={group.name}
-            hoursLeft={Math.max(1, Math.ceil((new Date(estimatedWindowEnd).getTime() - now.getTime()) / 3600000))}
-            notPlayed={Math.max(0, (rosterSize ?? 0) - submittedCount)}
-          />
-        </>
-      )}
-
-      {phase.kind === "voting" && roundId && (
-        <>
-          <div className="font-mono led-text text-2xl font-bold uppercase tracking-widest">
-            {phase.hasVoted ? "Votes in" : "Vote open"}
-          </div>
-          <Link
-            href={`/reveal/${roundId}`}
-            className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide"
-          >
-            {phase.hasVoted ? "See submissions" : "Cast your vote"}
-          </Link>
-        </>
-      )}
-
-      {phase.kind === "settled" && roundId && (
-        <>
-          <div className="font-mono led-text text-2xl font-bold uppercase tracking-widest">Revealed</div>
-          <Link
-            href={`/reveal/${roundId}`}
-            className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide"
-          >
-            See results
-          </Link>
-        </>
-      )}
-    </div>
+      <Link href={`/g/${group.invite_code}`} className="chip">
+        {group.name} · {group.streak} day streak
+      </Link>
+    </section>
   );
 }

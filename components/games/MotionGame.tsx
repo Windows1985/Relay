@@ -62,11 +62,11 @@ export function MotionGame({ roundId, durationMs }: { roundId: string; durationM
       try {
         const result = await DeviceMotionEventTyped.requestPermission();
         if (result !== "granted") {
-          setPermissionError("Motion access denied — this game needs it to count shakes.");
+          setPermissionError("Motion access was denied — this game needs it to count shakes.");
           return;
         }
       } catch {
-        setPermissionError("Couldn't request motion access.");
+        setPermissionError("Couldn't ask for motion access. Try again from the installed app.");
         return;
       }
     }
@@ -75,25 +75,29 @@ export function MotionGame({ roundId, durationMs }: { roundId: string; durationM
 
   if (phase === "gate") {
     return (
-      <div className="bezel flex w-full max-w-sm flex-col items-center gap-4 px-6 py-10 text-center">
-        <div className="font-mono led-text text-xl font-bold uppercase tracking-widest">Shake</div>
-        <p className="text-sm text-ink-dim">Shake your phone as many times as you can in 15 seconds.</p>
-        {permissionError && <p className="text-sm text-danger">{permissionError}</p>}
-        <button onClick={start} className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide">
-          Ready
+      <>
+        {permissionError && <p className="text-sm font-bold text-danger">{permissionError}</p>}
+        <button onClick={start} className="btn-primary w-full">
+          I&apos;m ready — go
         </button>
-      </div>
+      </>
     );
   }
 
+  const progress = Math.max(0, msLeft / durationMs);
   return (
-    <div className="bezel flex w-full max-w-sm flex-col items-center gap-4 px-6 py-10 text-center">
-      <div className="font-mono led-text text-6xl font-bold tabular-nums">{count}</div>
-      <div className="bezel-inset w-full py-2 text-sm text-ink-dim">
-        {(msLeft / 1000).toFixed(1)}s left
+    <>
+      <div className="ring">
+        <div className="ring-inner h-44 w-44">
+          <span className="num text-6xl font-semibold">{count}</span>
+          <span className="text-xs font-bold text-ink-2">shakes</span>
+        </div>
       </div>
-      {submitting && <p className="text-sm text-ink-dim">Transmitting...</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
-    </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-line">
+        <div className="h-full rounded-full transition-[width] duration-100" style={{ width: `${progress * 100}%`, background: "var(--sunset)" }} />
+      </div>
+      <p className="text-sm font-bold text-ink-2">{phase === "done" ? (submitting ? "Posting…" : "Done!") : `${(msLeft / 1000).toFixed(1)}s left — keep going`}</p>
+      {error && <p className="text-sm font-bold text-danger">{error}</p>}
+    </>
   );
 }

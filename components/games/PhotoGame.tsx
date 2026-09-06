@@ -26,7 +26,7 @@ function compressImage(file: File): Promise<Blob> {
   });
 }
 
-export function PhotoGame({ roundId, promptText }: { roundId: string; promptText: string }) {
+export function PhotoGame({ roundId }: { roundId: string }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export function PhotoGame({ roundId, promptText }: { roundId: string; promptText
       setPendingBlob(blob);
       setPreview(URL.createObjectURL(blob));
     } catch {
-      setUploadError("Couldn't process that photo.");
+      setUploadError("Couldn't read that photo. Try another.");
     }
   }
 
@@ -54,7 +54,7 @@ export function PhotoGame({ roundId, promptText }: { roundId: string; promptText
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      setUploadError("Not signed in.");
+      setUploadError("You've been signed out — sign in and try again.");
       setUploading(false);
       return;
     }
@@ -71,39 +71,31 @@ export function PhotoGame({ roundId, promptText }: { roundId: string; promptText
   }
 
   return (
-    <div className="bezel flex w-full max-w-sm flex-col items-center gap-4 px-6 py-10 text-center">
-      <div className="font-mono led-text text-lg font-bold uppercase tracking-widest">{promptText}</div>
-
-      {!preview && (
-        <label className="btn-tactile w-full cursor-pointer py-4 text-lg font-bold uppercase tracking-wide">
-          Take photo
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={onFileChange}
-            className="hidden"
-          />
+    <>
+      {preview ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={preview} alt="Your photo" className="aspect-square w-full rounded-[20px] object-cover" />
+      ) : (
+        <label className="btn-primary w-full cursor-pointer">
+          Take a photo
+          <input type="file" accept="image/*" capture="environment" onChange={onFileChange} className="hidden" />
         </label>
       )}
 
       {preview && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={preview} alt="Your submission preview" className="bezel-inset w-full object-cover" />
+        <div className="flex w-full flex-col gap-2">
+          <button onClick={confirm} disabled={uploading || submitting} className="btn-primary w-full">
+            {uploading ? "Uploading…" : submitting ? "Posting…" : "Post it"}
+          </button>
+          <label className="btn-secondary w-full cursor-pointer">
+            Retake
+            <input type="file" accept="image/*" capture="environment" onChange={onFileChange} className="hidden" />
+          </label>
+        </div>
       )}
 
-      {preview && (
-        <button
-          onClick={confirm}
-          disabled={uploading || submitting}
-          className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "Transmit"}
-        </button>
-      )}
-
-      {uploadError && <p className="text-sm text-danger">{uploadError}</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
-    </div>
+      {uploadError && <p className="text-sm font-bold text-danger">{uploadError}</p>}
+      {error && <p className="text-sm font-bold text-danger">{error}</p>}
+    </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BellIcon, DownloadIcon } from "@/components/icons";
 
 const DISMISSED_KEY = "relay_install_prompt_dismissed";
 
@@ -11,21 +12,21 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
-// Shown once, after the first reveal (spec: install prompt goes after the
-// payoff, not at join, because Add to Home Screen has heavy drop-off
-// beforehand). Handles both halves of the same moment: installing to the
-// home screen (where beforeinstallprompt is available) and subscribing to
-// push (which works in-browser on Android/desktop regardless of install).
-export function InstallAndNotify() {
-  const [dismissed, setDismissed] = useState(true);
+// Shown after the first reveal (spec: the install prompt goes after the
+// payoff, not at join). With `always`, it never hides itself — used on the
+// /install page where the user came looking for it.
+export function InstallAndNotify({ always = false }: { always?: boolean }) {
+  const [dismissed, setDismissed] = useState(!always);
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
+  const [status, setStatus] = useState<"idle" | "subscribed" | "denied" | "unsupported">("idle");
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISSED_KEY)) return;
+    if (!always && localStorage.getItem(DISMISSED_KEY)) return;
     setDismissed(false);
     setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
+    if (!("Notification" in window) || !("PushManager" in window)) setStatus("unsupported");
+    else if (Notification.permission === "denied") setStatus("denied");
 
     const onPrompt = (e: Event) => {
       e.preventDefault();
@@ -33,11 +34,11 @@ export function InstallAndNotify() {
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
-  }, []);
+  }, [always]);
 
   function dismiss() {
     localStorage.setItem(DISMISSED_KEY, "1");
-    setDismissed(true);
+    if (!always) setDismissed(true);
   }
 
   async function install() {
@@ -49,46 +50,65 @@ export function InstallAndNotify() {
 
   async function enableNotifications() {
     const permission = await Notification.requestPermission();
-    if (permission !== "granted") return dismiss();
-
+    if (permission !== "granted") {
+      setStatus("denied");
+      return;
+    }
     const registration = await navigator.serviceWorker.ready;
     const sub = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
     });
     await fetch("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub.toJSON()) });
-    setSubscribed(true);
+    setStatus("subscribed");
     dismiss();
   }
 
   if (dismissed) return null;
 
   return (
-    <div className="bezel-inset flex w-full max-w-sm flex-col gap-2 px-4 py-3 text-center">
-      {subscribed ? (
-        <p className="text-sm text-ok">Notifications on.</p>
+    <section className="card flex w-full flex-col gap-3 p-5">
+      {status === "subscribed" ? (
+        <p className="text-center text-sm font-bold text-ok">Notifications are on. You&apos;ll get a nudge when tonight&apos;s game goes live.</p>
       ) : (
         <>
-          <p className="text-xs text-ink-dim">
-            {isStandalone
-              ? "Get a nudge when tonight's game goes live."
-              : "Add Relay to your home screen and get a nudge when tonight's game goes live."}
-          </p>
-          <div className="flex gap-2">
+          <div>
+            <h3 className="font-display text-lg font-semibold">
+              {isStandalone ? "Get nudged when it's live" : "Put Relay on your home screen"}
+            </h3>
+            <p className="text-sm text-ink-2">
+              {isStandalone
+                ? "One tap, and we'll tell you the moment tonight's game opens."
+                : "It works like an app — and that's the only way notifications can reach you on iPhone."}
+            </p>
+          </div>
+          {status === "denied" && (
+            <p className="text-sm text-danger">Notifications are blocked for this site — allow them in your browser settings to turn this on.</p>
+          )}
+          {status === "unsupported" && !isStandalone && (
+            <p className="text-sm text-ink-2">This browser can&apos;t do notifications until Relay is installed to the home screen.</p>
+          )}
+          <div className="flex flex-col gap-2">
             {installPrompt && (
-              <button onClick={install} className="btn-tactile flex-1 py-2 text-xs font-bold uppercase">
-                Install
+              <button onClick={install} className="btn-primary w-full">
+                <DownloadIcon size={18} />
+                Install Relay
               </button>
             )}
-            <button onClick={enableNotifications} className="btn-ghost flex-1 py-2 text-xs uppercase">
-              Notify me
-            </button>
-            <button onClick={dismiss} className="text-xs text-ink-dim underline">
-              Not now
-            </button>
+            {status !== "unsupported" && status !== "denied" && (
+              <button onClick={enableNotifications} className={installPrompt ? "btn-secondary w-full" : "btn-primary w-full"}>
+                <BellIcon size={18} />
+                Turn on notifications
+              </button>
+            )}
+            {!always && (
+              <button onClick={dismiss} className="py-2 text-sm font-bold text-ink-2">
+                Not now
+              </button>
+            )}
           </div>
         </>
       )}
-    </div>
+    </section>
   );
 }

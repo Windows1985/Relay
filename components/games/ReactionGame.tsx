@@ -48,45 +48,50 @@ export function ReactionGame({ roundId }: { roundId: string }) {
     }
   }
 
-  return (
-    <div
-      onClick={phase === "waiting" || phase === "go" ? handleTap : undefined}
-      className={`bezel flex w-full max-w-sm flex-col items-center gap-6 px-6 py-10 text-center ${
-        phase === "go" ? "bg-amber" : ""
-      }`}
-    >
-      <div className="font-mono led-text text-xl font-bold uppercase tracking-widest">
-        Reaction {round + 1}/{ROUNDS}
-      </div>
+  const tappable = phase === "waiting" || phase === "go";
 
-      {phase === "ready" && (
-        <button
-          onClick={armRound}
-          className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide"
-        >
-          Ready
-        </button>
-      )}
-      {phase === "waiting" && <p className="text-sm text-ink-dim">Wait for it...</p>}
-      {phase === "go" && <p className="text-2xl font-bold text-ground">TAP!</p>}
-      {phase === "too_soon" && (
-        <>
-          <p className="text-sm text-danger">Too soon.</p>
-          <button
-            onClick={armRound}
-            className="btn-tactile w-full py-4 text-lg font-bold uppercase tracking-wide"
-          >
-            Retry
-          </button>
-        </>
-      )}
-      {phase === "done" && (
-        <div className="font-mono led-text text-4xl font-bold tabular-nums">
-          {Math.min(...results)}ms
+  return (
+    <>
+      <button
+        onPointerDown={tappable ? handleTap : undefined}
+        disabled={!tappable}
+        className="flex h-56 w-full select-none flex-col items-center justify-center gap-1 rounded-[20px] transition-colors duration-100 disabled:opacity-100"
+        style={{
+          background: phase === "go" ? "var(--sunset)" : "var(--paper-warm)",
+          color: phase === "go" ? "#fff" : "var(--ink)",
+          border: phase === "go" ? "none" : "1.5px solid var(--line)",
+        }}
+        aria-label="Reaction pad"
+      >
+        {phase === "ready" && <span className="font-display text-xl font-semibold text-ink-2">Round {round + 1} of {ROUNDS}</span>}
+        {phase === "waiting" && <span className="font-display text-2xl font-semibold text-ink-2">Wait for it…</span>}
+        {phase === "go" && <span className="font-display text-5xl font-bold">TAP!</span>}
+        {phase === "too_soon" && <span className="font-display text-2xl font-semibold text-danger">Too soon!</span>}
+        {phase === "done" && (
+          <>
+            <span className="num text-5xl font-semibold">{Math.min(...results)}</span>
+            <span className="text-xs font-bold text-ink-2">ms — your best</span>
+          </>
+        )}
+      </button>
+
+      {results.length > 0 && phase !== "done" && (
+        <div className="flex gap-2">
+          {results.map((r, i) => (
+            <span key={i} className="chip num">
+              {r}ms
+            </span>
+          ))}
         </div>
       )}
-      {submitting && <p className="text-sm text-ink-dim">Transmitting...</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
-    </div>
+
+      {(phase === "ready" || phase === "too_soon") && (
+        <button onClick={armRound} className="btn-primary w-full">
+          {phase === "too_soon" ? "Try that one again" : "Ready"}
+        </button>
+      )}
+      {phase === "done" && <p className="text-sm font-bold text-ink-2">{submitting ? "Posting…" : "Done!"}</p>}
+      {error && <p className="text-sm font-bold text-danger">{error}</p>}
+    </>
   );
 }

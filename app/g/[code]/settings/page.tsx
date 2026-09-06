@@ -1,12 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ChevronLeftIcon } from "@/components/icons";
 import { SettingsForm } from "./settings-form";
 
-export default async function GroupSettingsPage({
-  params,
-}: {
-  params: Promise<{ code: string }>;
-}) {
+export default async function GroupSettingsPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const supabase = await createClient();
   const { data: group } = await supabase
@@ -17,13 +15,16 @@ export default async function GroupSettingsPage({
   if (!group) notFound();
 
   return (
-    <main className="flex flex-1 flex-col items-center p-8">
-      <div className="bezel flex w-full max-w-sm flex-col gap-3 px-6 py-10">
-        <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
-          Group settings
-        </h1>
+    <main className="page flex flex-col gap-4">
+      <header className="flex items-center gap-2 py-1">
+        <Link href={`/g/${group.invite_code}`} className="-ml-2 p-2" aria-label="Back">
+          <ChevronLeftIcon size={24} />
+        </Link>
+        <h1 className="font-display text-2xl font-bold">Settings</h1>
+      </header>
+      <section className="card p-5">
         <SettingsForm group={group} />
-      </div>
+      </section>
     </main>
   );
 }

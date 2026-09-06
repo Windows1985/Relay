@@ -1,146 +1,182 @@
 ---
 name: Relay
-description: A night-shift radio-relay control panel for a friend group's nightly minigame
+description: A friends' feed you can only unlock by playing — Instagram's grammar, one game a night
 colors:
-  ground: "#0b0d0a"
-  ground-raised: "#14170f"
-  panel: "#191d14"
-  ink: "#eef0e6"
-  ink-dim: "#9aa08e"
-  amber: "#ffb020"
-  amber-dim: "#8a5c14"
-  danger: "#ff5c4d"
-  ok: "#5ce08a"
-  amber-pressed: "#d98d10"
-  ink-on-amber: "#1a1204"
-  disabled-fill: "#3a3a32"
-  disabled-shadow: "#22221d"
+  paper: "#ffffff"
+  paper-warm: "#faf8f5"
+  ink: "#171313"
+  ink-2: "#6b6670"
+  line: "#ebe7e2"
+  sunset-1: "#f9a73e"
+  sunset-2: "#fb5f6a"
+  sunset-3: "#c13584"
+  sunset-4: "#7c3aed"
+  danger: "#e5484d"
+  ok: "#2fb36b"
+  disabled-fill: "#e6e2dc"
+  disabled-ink: "#9b95a0"
+  ink-alpha-6: "rgba(23, 19, 19, 0.06)"
+  ink-alpha-4: "rgba(23, 19, 19, 0.04)"
+  sunset-3-alpha-28: "rgba(193, 53, 132, 0.28)"
+  sunset-3-alpha-24: "rgba(193, 53, 132, 0.24)"
+  sunset-3-alpha-15: "rgba(193, 53, 132, 0.15)"
+  sunset-3-alpha-8: "rgba(193, 53, 132, 0.08)"
+  cosmetic-rainbow-red: "#ff5c4d"
+  cosmetic-rainbow-amber: "#ffb020"
+  cosmetic-rainbow-green: "#5ce08a"
   cosmetic-rainbow-blue: "#4da3ff"
   cosmetic-rainbow-violet: "#b06bff"
   cosmetic-chrome-shadow: "#8a8f80"
   cosmetic-chrome-highlight: "#f4f6ee"
 typography:
-  mono:
-    fontFamily: "Martian Mono"
-    role: "numerals, timers, wordmark, status labels"
+  display:
+    fontFamily: "Fredoka"
+    role: "headings, numerals, countdowns, wordmark, primary button labels"
   body:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    role: "body copy, form labels, prose"
+    fontFamily: "Nunito"
+    role: "body copy, labels, secondary buttons, UI text"
 rounded:
-  panel: "1rem"
-  inset: "0.75rem"
-  button: "0.85rem"
+  card: "20px"
+  input: "14px"
+  pill: "999px"
+spacing:
+  card-padding: "1.5rem"
+  card-gap: "1rem"
+  page-gutter: "1rem"
+  tap-target-min: "48px"
 ---
 
 # Design System: Relay
 
 ## Overview
 
-**Creative North Star: "The Night-Shift Radio Relay"**
+**Creative North Star: "The Locked Feed"**
 
-Relay behaves like the hardware its name describes: a late-night signal-relay control panel, not a mobile-game menu. The interface is near-black, low-glare, and legible one-handed in a dark room — because that's the actual scene: a friend checking their phone at 9pm before bed. One committed amber accent, styled like an LED digit or a VU meter, carries every moment that matters (the countdown, the live indicator, the lock/unlock state). Everything else recedes into dark, recessed panel surfaces.
+Relay borrows the grammar every group chat already knows from Instagram — story rings, a bottom tab bar, post cards, a heart — and repurposes it around one rule the platform it quotes doesn't have: the feed stays locked until you've posted your own move. The look is bright, rounded, and friendly; the tension comes entirely from the ring that hasn't completed yet.
 
-This is an Operate-mode surface — task completion (check status, play, see reveal) — so the personality lives in a handful of load-bearing details (the countdown typography, the tactile button press, the bezel depth) rather than in decoration spread across the whole page. No gradient cards, no mobile-game chrome, no generic dashboard layout.
+This is an Operate-mode product used for about two minutes a night, one-handed, on a phone. Every screen has exactly one obvious primary action, tap targets are never smaller than 48px, and the primary button is the only thing on a screen wearing the gradient. Expression lives in a few load-bearing details — the ring, the heart, the streak badge, Fredoka's rounded numerals — never in decoration spread across the page.
 
 **Key Characteristics:**
-- Near-black warm charcoal ground; amber is the only saturated color in the system
-- Martian Mono for anything numeric or time-based; system sans everywhere else
-- Physical-hardware component language: recessed bezels, tactile pressed buttons, no flat cards
+- White cards on a warm-white page; near-black ink; one sunset gradient as the single accent
+- Fredoka for anything that should feel like a number or a title; Nunito for everything you read
+- Instagram's component vocabulary (ring, tab bar, post card, heart) used literally, not as a mood
 
 ## Colors
 
-One committed accent on a near-black ground — Restrained-plus-one, applied at page scale, never scattered as decoration.
+Restrained-plus-one: neutrals carry the page; the sunset gradient is applied at component scale as a fill on exactly the elements that mean "act" or "alive."
 
 ### Primary
-- **Signal Amber** (`#ffb020`): the countdown/status readout, the primary action button, the lock/unlock indicator, winner highlights. This is the only saturated color in the system — its presence always means "this is live, this is the moment."
+- **Sunset Gradient** (`#f9a73e → #fb5f6a → #c13584 → #7c3aed`, `135deg`): the story ring when a round is live/revealed, the primary button, the streak badge, the winner badge, and a filled heart's colour (`#fb5f6a`). Always a fill or a stroke, never text.
 
 ### Neutral
-- **Near-Black Ground** (`#0b0d0a`): page background.
-- **Raised Ground** (`#14170f`): recessed/inset surfaces (`.bezel-inset`) — inputs, secondary panels.
-- **Panel** (`#191d14`): the primary bezel surface (`.bezel`) — the main content panel on every screen.
-- **Ink** (`#eef0e6`): primary text.
-- **Ink Dim** (`#9aa08e`): secondary/label text, always tinted warm off-white, never pure gray.
+- **Paper** (`#ffffff`): every card and the tab bar.
+- **Paper Warm** (`#faf8f5`): the page ground, input fields at rest, pressed-state fills, and the reaction pad's idle state.
+- **Ink** (`#171313`): primary text and active tab icons.
+- **Ink 2** (`#6b6670`): secondary text, hints, inactive tabs, meta labels. Always this warm gray — never a pure gray.
+- **Line** (`#ebe7e2`): hairline borders on inputs, secondary buttons, list dividers, and the muted (not-live) story ring.
 
 ### Status
-- **Danger** (`#ff5c4d`): errors, streak-broken state, report actions.
-- **Ok** (`#5ce08a`): streak-survived confirmation.
+- **Ok** (`#2fb36b`): "streak lives", saved confirmations, the Wearing chip.
+- **Danger** (`#e5484d`): errors, "streak broke", destructive confirms (Leave / Remove).
+
+### Derived (states and depth, not independent choices)
+- **Disabled Fill** (`#e6e2dc`) / **Disabled Ink** (`#9b95a0`): a disabled primary button loses the gradient entirely — it must never read as "a dimmer version of go."
+- **Ink alpha 6% / 4%**: the two layers of the card shadow.
+- **Sunset-3 alpha 28% / 24%**: the primary button's resting and pressed glow. **15%**: input focus ring. **8%**: the selected-state fill on choice rows (name pick, admin mode grid).
 
 ### Shop Cosmetics (scoped to purchasable name colours, never used elsewhere)
-Per relay-spec.md's Shop section: solids and two-stop gradients reuse the core palette; **rainbow** and **chrome** are the two cosmetics that need colors the core system doesn't otherwise use — genuinely need a full hue sweep / metallic ramp to read as their name. Confined entirely to `.name-rainbow` / `.name-chrome` in globals.css; nothing else in the product may reach for these.
-- **Rainbow sweep**: `#ff5c4d, #ffb020, #5ce08a, #4da3ff, #b06bff` — reuses Danger/Amber/Ok and adds Sky Blue (`#4da3ff`) and Signal Violet (`#b06bff`) to complete the hue cycle.
-- **Chrome ramp**: `#8a8f80` (Chrome Shadow) / `#f4f6ee` (Chrome Highlight) — a metallic gray sweep, deliberately outside the warm ink/ground family since chrome reads as chrome only when it's neutral-cool.
-
-### Derived (button/state shades, not independent palette choices)
-- **Amber Pressed** (`#d98d10`): the gradient's dark edge and the tactile button's resting shadow — a darkened Signal Amber, not a second accent.
-- **Ink on Amber** (`#1a1204`): text/icon color specifically for content sitting on the amber fill.
-- **Disabled Fill** (`#3a3a32`) / **Disabled Shadow** (`#22221d`): the `.btn-tactile:disabled` state — desaturated rather than a dimmed amber, per the Component rule that disabled never reads as "dimmer amber."
+Per relay-spec.md's Shop section, rainbow and chrome are the two cosmetics that need colours outside the core system. Confined to `.name-rainbow` / `.name-chrome` in globals.css.
+- **Rainbow sweep**: `#ff5c4d, #ffb020, #5ce08a, #4da3ff, #b06bff`.
+- **Chrome ramp**: `#8a8f80` (shadow) / `#f4f6ee` (highlight).
 
 ### Named Rules
-**The One Signal Rule.** Amber only marks what's live or actionable right now — a countdown, a primary button, a winner. It never decorates a static label or a neutral state; if nothing needs attention, nothing is amber.
+**The One Gradient Rule.** The sunset gradient appears on at most one button per screen and on the ring/badges that report state. If two things on a screen wear it, one of them is wrong.
+
+**The Fill-Not-Text Rule.** The gradient is never applied to text; the text-clipping technique is reserved for the two shop cosmetics (rainbow, chrome) that are literally named after that effect. Emphasis in type comes from Fredoka and size.
 
 ## Typography
 
-**Display/Mono Font:** Martian Mono (with monospace fallback)
-**Body Font:** system-ui stack (Operate-mode surfaces are licensed to use a workhorse system face where a webfont adds no comprehension value)
+**Display Font:** Fredoka (with system-ui fallback)
+**Body Font:** Nunito (with system-ui fallback)
 
-**Character:** Martian Mono's segmented-display letterforms carry the "hardware" identity everywhere a number or countdown appears; the system sans stays out of the way for everything else.
+**Character:** Both faces have rounded terminals, so headings and body read as one friendly voice at two weights of intent. Fredoka is bold enough to carry a countdown at 60px and a tab label at 11px; Nunito stays quiet underneath it.
 
 ### Hierarchy
-- **Readout** (bold, `text-5xl`–`text-6xl`, tabular-nums, Martian Mono, amber): the countdown/status digits — the dominant focal point of every screen.
-- **Status label** (bold, `text-xl`–`text-2xl`, uppercase, tracking-widest, Martian Mono, amber): "LIVE", "REVEALED", "VOTE OPEN".
-- **Body** (system sans, `text-sm`–`text-base`, ink): prompts, descriptions, form labels.
-- **Meta label** (`text-xs`, tracking-[0.3em], uppercase, ink-dim): group name + streak, secondary context above the main readout.
+- **Countdown / big number** (Fredoka 600, `text-5xl`–`text-6xl`, `tabular-nums` via `.num`): inside the story ring, the tap counter, the result reveal. The largest thing on any screen it appears on.
+- **Page title** (Fredoka 700, `text-2xl`): one per screen, in the header row beside a back chevron.
+- **Card heading** (Fredoka 600, `text-lg`–`text-xl`): one per card.
+- **Body** (Nunito 400, `text-sm`–`text-base`, Ink): prompts, descriptions, post text (post text steps up to Fredoka 600 `text-xl`).
+- **Meta / label** (Nunito 700, `text-xs`, Ink 2, sometimes `uppercase tracking-wide`): chips, hints, tab labels, section eyebrows inside cards.
+
+### Named Rules
+**The Numbers Are Fredoka Rule.** Any number a player compares — a countdown, a score, a token balance, a streak, a rank — is set in Fredoka with tabular figures (`.num`). Nunito never carries a number that matters.
 
 ## Layout
 
-Single-column, mobile-first, max-width `24rem` (`max-w-sm`) centered content — this is a phone-in-one-hand product, and desktop width is never the design target. One primary panel (`.bezel`) per screen holds the focal content; no nav bar, no card grid, no dashboard chrome. Generous vertical rhythm (`gap-6`, `py-10`) keeps the countdown/status readout as the dominant element rather than one item in a list.
+Single column, phone-first, `max-width: 28rem` centered (`.page`), 16px gutters, cards stacked with a 16–20px gap. A fixed bottom tab bar (`.tabbar`, five destinations, 56px rows, safe-area padded) is present on every authenticated screen and hidden on auth screens; `.page` reserves its height. Screens open with a one-row header (back chevron + title, or wordmark + streak badge on Home) and then lead with the single card that matters. Desktop is not a design target: the column simply centers.
 
 ## Elevation & Depth
 
-Hybrid: recessed bezels via layered `box-shadow` (never a flat card, never a drop shadow floating a surface up). The panel language reads as *machined into* the page, not laid on top of it.
+Soft, diffuse, and shallow. Cards float 2px above the warm page on a two-layer ink shadow; nothing else casts a shadow except the primary button, whose glow is the accent colour itself at low alpha. No inset/recessed surfaces (that was the retired world's language). Borders are hairline `Line` and only on inputs, secondary buttons, and choice rows.
 
 ### Shadow Vocabulary
-- **`.bezel`** (`inset 0 1px 0 bezel-light, inset 0 -2px 6px bezel-dark, 0 1px 0 rgba(255,255,255,.03)`): the primary content panel — a shallow physical recess.
-- **`.bezel-inset`** (`inset 0 2px 6px bezel-dark, inset 0 -1px 0 bezel-light`): deeper recess for inputs and secondary tiles.
-- **`.btn-tactile`** (`0 3px 0 amber-dim, 0 6px 12px rgba(0,0,0,.4)`, collapsing to `0 0 0` + a `translateY(3px)` on `:active`): a physical button press, not a hover-fade.
+- **Card** (`0 2px 12px rgba(23,19,19,.06), 0 1px 2px rgba(23,19,19,.04)`): every `.card`.
+- **Primary glow** (`0 6px 18px rgba(193,53,132,.28)`, pressed `0 3px 10px …,.24`): `.btn-primary` only.
+- **Winner outline** (`0 0 0 2.5px sunset-3` stacked above the card shadow): the winning post card.
 
 ### Named Rules
-**The Machined-In Rule.** Nothing floats. Every surface is either the ground, or recessed into it. A raised drop-shadow card is a bug, not a stylistic choice.
+**The Floating Card Rule.** Depth means "this is a card." Surfaces are either the page or a card; there is no third level, and cards never nest.
 
 ## Shapes
 
-Rounded rectangles throughout (`0.75`–`1rem` radius) with no sharp corners and no pill shapes — soft enough to read as machined plastic/metal, not soft enough to read as a mobile-game card. Buttons are full-width by default; only single-glyph or icon-style controls (the tap-fast counter) go circular.
+Rounded everything, with three radii that never mix roles: **20px** for cards, images, and the reaction pad; **14px** for inputs; **999px** (pill) for buttons, chips, badges, avatars, and rings. Big single-purpose controls (the tap counter, start/stop) are full circles (`h-52 w-52`). Icons are authored inline SVG at a 1.9 stroke, 24px box, `currentColor` — one set, one weight, never emoji.
 
 ## Components
 
 ### Buttons
-- **Shape:** `0.85rem` radius, full-width by default.
-- **Primary (`.btn-tactile`):** amber gradient fill, dark ink text, tactile shadow-collapse press state (see Elevation). This is the only button style in the system — there is no secondary/ghost variant, because every screen has exactly one primary action.
-- **Disabled:** desaturates to a flat gray-green (`#3a3a32`) with a matching dark shadow — never just lowered opacity on the amber fill, which would read as a dimmer amber rather than an inactive control.
+- **Primary (`.btn-primary`):** sunset gradient fill, white Fredoka label, pill, 52px tall, full width in cards; presses scale to 0.97 with a reduced glow. Disabled loses the gradient (Disabled Fill / Disabled Ink).
+- **Secondary (`.btn-secondary`):** Paper fill, hairline Line border, Nunito 700, pill, 48px; presses tint to Paper Warm.
+- **Big control:** `.btn-primary` sized as a circle for the one huge game control (tap counter, start/stop); `.num` at `text-4xl`–`text-6xl`.
+- **Text button:** Ink 2 or Sunset-3, Nunito 700, `min-h-11` — only for tertiary actions (Not now, Report, mode switch).
 
-### Panels
-- **Corner style:** `1rem` (`.bezel`) / `0.75rem` (`.bezel-inset`).
-- **Background:** `panel` / `ground-raised` respectively.
-- **Shadow strategy:** see Elevation — always recessed, never raised.
-- **Border:** none; depth comes entirely from the inset shadow, not a stroke.
+### Story Ring (signature component)
+`.ring` (gradient, 5px) wrapping `.ring-inner` (Paper circle). Live/revealed rounds get the gradient; locked/scheduled rounds get `.ring-muted` (Line). The ring holds the round's status — countdown digits, LIVE, a check — and is the focal element of Home, the Play tab's empty state, the profile, and the winner callout. Completing your post plays `.ring-complete` once.
+
+### Cards / Containers
+- **Corner:** 20px. **Background:** Paper. **Shadow:** Card. **Border:** none. **Padding:** 24px (`p-6`) for content cards, 20px (`p-5`) for form cards, 8px (`p-2`) for list cards whose rows carry their own padding.
+- **List row:** `min-h-14`, avatar + label + trailing meta/chip; pressable rows tint to Paper Warm.
+
+### Post card (reveal)
+Header (avatar, `Name` with cosmetic, Winner badge or score chip), body (square image at 20px radius, or Fredoka `text-xl` text), footer (heart with count/label, Report as a text button). The winner's card takes the outline shadow.
+
+### Chips & Badges
+- **Chip (`.chip`):** Paper Warm, Line border, Nunito 700 `text-xs`, Ink 2; carries meta (streak, count, state).
+- **Badge (`.badge-sunset`):** gradient fill, white Fredoka; the streak on Home, the Winner label, the shop balance.
 
 ### Inputs / Fields
-- **Style:** `.bezel-inset` treatment — the same recessed language as panels, so a text field reads as part of the hardware, not a bolted-on web form control.
-- **Focus:** amber ring (`ring-2 ring-amber`) — the one place a border is used, and only on interaction.
+- **Style (`.input`):** Paper Warm fill, Line border, 14px radius, 48px tall; labels are Nunito 700 `text-sm` above the field.
+- **Focus:** border to Sunset-3 plus a 15%-alpha ring; fill goes to Paper.
+- **Choice rows** (name pick, admin mode grid): Line border at rest; Sunset-3 border + 8%-alpha fill when selected, with a check icon.
 
-### Status Readout (signature component)
-The large Martian Mono countdown/status digit block is Relay's signature element — every screen's first viewport is built around it, not around a header or nav. It always renders in amber, always tabular-nums, and is the single largest text on any screen.
+### Navigation
+- **Tab bar:** five tabs (Home, Play, Board, Shop, Me), Ink 2 at rest, Ink + a Sunset-3 icon when current, `aria-current="page"`. Hidden on `/join`, `/pick-username`, `/j/*`, `/auth/*`.
+- **In-page header:** back chevron (44px hit area) + Fredoka title; Home swaps the chevron for the wordmark and adds the streak badge.
+
+### Avatar
+`.avatar`: 40px Paper Warm circle, Line border, one Fredoka initial. Wrapped in `.ring` for rank #1 and the profile.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep amber as the only saturated color anywhere in the system (see The One Signal Rule).
-- **Do** render every countdown, score, and streak number in Martian Mono with `tabular-nums`.
-- **Do** build every panel as a recess (`.bezel` / `.bezel-inset`), never a raised card.
-- **Do** keep the layout single-column, mobile-first, `max-w-sm`.
+- **Do** give every screen exactly one `.btn-primary`, full width, as the last thing in its card.
+- **Do** put every player-compared number in `.num`.
+- **Do** keep list rows and choice rows at `min-h-14` and any tappable text at `min-h-11`.
+- **Do** write button labels as what happens next ("Play now", "Post it", "Wear it", "Lock it in"), never as nouns.
+- **Do** use the ring for state and the heart for votes — the two Instagram verbs the product actually shares.
 
 ### Don't:
-- **Don't** add a second accent color, even for a "nice to have" — a second color halves the amber's meaning.
-- **Don't** use a drop-shadow / raised-card treatment anywhere; it breaks the machined-panel language.
-- **Don't** reach for a gradient-card mobile-game aesthetic (rounded icon tiles, soft pastel gradients, badge-shaped stat chips) — that's the exact category default this direction refuses.
-- **Don't** style body copy or labels in Martian Mono — it's reserved for numerals/timers/status, per The Machined-In identity; using it for prose turns a deliberate signal into decoration.
+- **Don't** put the gradient on text, on a second button, or on a card background.
+- **Don't** introduce a second accent hue; status colours (Ok/Danger) are the only non-gradient colour allowed and only for status.
+- **Don't** use inset/recessed surfaces, dark backgrounds, or monospace — those belong to the retired "radio relay" world and must not leak back in.
+- **Don't** use a browser `confirm()`; destructive actions (Leave, Remove, Replace tonight's round) confirm inline with two buttons.
+- **Don't** substitute emoji for an icon; extend `components/icons.tsx` instead.

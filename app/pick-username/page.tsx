@@ -17,14 +17,12 @@ export default async function PickUsernamePage() {
   if (profile?.username) redirect("/");
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-8">
-      <div className="bezel flex w-full max-w-sm flex-col gap-4 px-6 py-10">
-        <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
-          Pick a username
-        </h1>
-        <p className="text-center text-sm text-ink-dim">
-          This is what your group sees. Google doesn&apos;t give us one for you.
-        </p>
+    <main className="flex flex-1 flex-col items-center justify-center p-5">
+      <div className="card flex w-full max-w-sm flex-col gap-4 p-6">
+        <div className="text-center">
+          <h1 className="font-display text-2xl font-bold">Pick a username</h1>
+          <p className="mt-1 text-sm text-ink-2">This is what your group sees. Google doesn&apos;t give us one.</p>
+        </div>
         <PickUsernameForm />
       </div>
     </main>
