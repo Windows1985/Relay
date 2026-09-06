@@ -25,6 +25,7 @@ export function RevealView({
   settled,
   winnerId,
   streakSurvived,
+  freezeUsedByUsername,
   votesCloseAt,
   submissions,
 }: {
@@ -39,6 +40,7 @@ export function RevealView({
   settled: boolean;
   winnerId: string | null;
   streakSurvived: boolean | null;
+  freezeUsedByUsername: string | null;
   votesCloseAt: string | null;
   submissions: Submission[];
 }) {
@@ -84,6 +86,9 @@ export function RevealView({
           <p className={`text-sm ${streakSurvived ? "text-ok" : "text-danger"}`}>
             {streakSurvived ? "Streak survives." : "Streak broke."}
           </p>
+        )}
+        {settled && freezeUsedByUsername && (
+          <p className="text-xs text-ink-dim">A freeze saved it — paid for by {freezeUsedByUsername}.</p>
         )}
         {!settled && needsVote && votesCloseAt && (
           <p className="text-sm text-ink-dim">

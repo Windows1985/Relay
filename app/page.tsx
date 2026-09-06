@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTodaysRound, getSubmittedCount } from "@/lib/rounds-data";
 import { todayInZone, zonedTimeToUtc } from "@/lib/tz";
 import { ChannelStatus } from "@/components/ChannelStatus";
+import { EmailNudge } from "@/components/EmailNudge";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -20,7 +21,7 @@ export default async function Home() {
 
   const { data: memberships } = await supabase
     .from("memberships")
-    .select("groups(id, invite_code, name, streak, tz, window_start)");
+    .select("groups(id, invite_code, name, streak, tz, window_start, window_end)");
 
   const groups = (memberships ?? [])
     .map((m) => m.groups as unknown as {
@@ -30,14 +31,22 @@ export default async function Home() {
       streak: number;
       tz: string;
       window_start: string;
+      window_end: string;
     } | null)
     .filter((g): g is NonNullable<typeof g> => g !== null);
+
+  // Nudge for a real recovery email once there's a streak worth protecting.
+  // Signup always uses a synthetic @id.relay.app address (see lib/username.ts).
+  const hasRealEmail = !user.email?.endsWith("@id.relay.app");
+  const streakWorthProtecting = groups.some((g) => g.streak >= 3);
 
   return (
     <main className="flex flex-1 flex-col items-center gap-6 p-6">
       <h1 className="font-mono text-lg font-bold uppercase tracking-[0.3em] text-ink-dim">
         Relay
       </h1>
+
+      {!hasRealEmail && streakWorthProtecting && <EmailNudge />}
 
       {groups.length === 0 && (
         <div className="bezel w-full max-w-sm px-6 py-8 text-center text-ink-dim">
@@ -64,11 +73,9 @@ export default async function Home() {
               }
             }
 
-            const estimatedOpensAt = zonedTimeToUtc(
-              todayInZone(group.tz),
-              group.window_start.slice(0, 5),
-              group.tz,
-            ).toISOString();
+            const today = todayInZone(group.tz);
+            const estimatedOpensAt = zonedTimeToUtc(today, group.window_start.slice(0, 5), group.tz).toISOString();
+            const estimatedWindowEnd = zonedTimeToUtc(today, group.window_end.slice(0, 5), group.tz).toISOString();
 
             return (
               <div key={group.invite_code} className="flex flex-col gap-2">
@@ -78,6 +85,7 @@ export default async function Home() {
                   roundId={round?.id ?? null}
                   rosterSize={round?.roster.length ?? null}
                   estimatedOpensAt={estimatedOpensAt}
+                  estimatedWindowEnd={estimatedWindowEnd}
                   hasSubmitted={hasSubmitted}
                   hasVoted={hasVoted}
                   submittedCount={submittedCount}

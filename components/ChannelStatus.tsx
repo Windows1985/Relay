@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { deriveRoundPhase, type RoundTimestamps } from "@/lib/round";
+import { ShareReminder } from "@/components/ShareReminder";
 
 type Group = {
   invite_code: string;
@@ -26,6 +27,7 @@ export function ChannelStatus({
   roundId,
   rosterSize,
   estimatedOpensAt,
+  estimatedWindowEnd,
   hasSubmitted,
   hasVoted,
   submittedCount,
@@ -35,6 +37,7 @@ export function ChannelStatus({
   roundId: string | null;
   rosterSize: number | null;
   estimatedOpensAt: string;
+  estimatedWindowEnd: string;
   hasSubmitted: boolean;
   hasVoted: boolean;
   submittedCount: number;
@@ -100,6 +103,11 @@ export function ChannelStatus({
             {rosterSize ? ` / ${rosterSize}` : ""}
           </div>
           <div className="text-sm text-ink-dim">transmitted &middot; waiting on the rest of the group</div>
+          <ShareReminder
+            groupName={group.name}
+            hoursLeft={Math.max(1, Math.ceil((new Date(estimatedWindowEnd).getTime() - now.getTime()) / 3600000))}
+            notPlayed={Math.max(0, (rosterSize ?? 0) - submittedCount)}
+          />
         </>
       )}
 

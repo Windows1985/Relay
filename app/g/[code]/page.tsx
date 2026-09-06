@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { FreezeBuyButton } from "./freeze-buy-button";
 
 export default async function GroupHomePage({
   params,
@@ -9,13 +10,23 @@ export default async function GroupHomePage({
 }) {
   const { code } = await params;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: group } = await supabase
     .from("groups")
-    .select("id, name, invite_code, streak, window_start, window_end, tz")
+    .select("id, name, invite_code, streak, freezes, window_start, window_end, tz")
     .eq("invite_code", code.toUpperCase())
     .single();
 
   if (!group) notFound();
+
+  let balance = 0;
+  if (user) {
+    const { data: bal } = await supabase.from("token_balances").select("balance").eq("user_id", user.id).maybeSingle();
+    balance = bal?.balance ?? 0;
+  }
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
@@ -30,6 +41,14 @@ export default async function GroupHomePage({
         <p className="text-sm text-ink-dim">
           Invite code: <span className="font-mono text-ink">{group.invite_code}</span>
         </p>
+
+        <div className="bezel-inset flex w-full flex-col gap-2 px-4 py-3">
+          <p className="text-xs text-ink-dim">
+            Freezes: {group.freezes}/2 &middot; your balance: {balance} tokens
+          </p>
+          {group.freezes < 2 && <FreezeBuyButton groupId={group.id} canAfford={balance >= 40} />}
+        </div>
+
         <div className="flex gap-4 text-sm text-ink-dim underline">
           <Link href={`/g/${group.invite_code}/members`}>Members</Link>
           <Link href={`/g/${group.invite_code}/settings`}>Settings</Link>

@@ -17,7 +17,7 @@ export default async function RevealPage({
   const { data: round } = await supabase
     .from("rounds")
     .select(
-      "id, mode_id, reveal_at, votes_close_at, settled_at, winner_id, streak_survived, roster, modes(input_type, scoring, target, needs_vote)",
+      "id, mode_id, reveal_at, votes_close_at, settled_at, winner_id, streak_survived, roster, freeze_used_by, profiles!rounds_freeze_used_by_fkey(username), modes(input_type, scoring, target, needs_vote)",
     )
     .eq("id", roundId)
     .single();
@@ -79,6 +79,9 @@ export default async function RevealPage({
         settled={!!round.settled_at}
         winnerId={round.winner_id}
         streakSurvived={round.streak_survived}
+        freezeUsedByUsername={
+          (round.profiles as unknown as { username: string } | null)?.username ?? null
+        }
         votesCloseAt={round.votes_close_at}
         submissions={(submissions ?? []).map((s) => ({
           userId: s.user_id,
