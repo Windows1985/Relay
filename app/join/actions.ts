@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { usernameToEmail, validateUsername } from "@/lib/username";
 import { consumePendingInvite } from "@/lib/invite";
@@ -48,12 +49,26 @@ export async function signIn(_prevState: unknown, formData: FormData) {
 }
 
 export async function signInWithGoogle() {
+  // Derived from the incoming request rather than an env var: this works on
+  // any deployment URL, and a missing NEXT_PUBLIC_APP_URL used to send
+  // Supabase "undefined/auth/callback", which it rejects as a validation
+  // failure.
+  const h = await headers();
+  const origin = h.get("origin") ?? `https://${h.get("host")}`;
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback` },
+    options: { redirectTo: `${origin}/auth/callback` },
   });
 
-  if (error || !data.url) return { error: error?.message ?? "Could not start Google sign-in." };
+  if (error || !data.url) {
+    // The provider being switched off in the Supabase dashboard is the
+    // common case; say that in words a player can act on.
+    const message = /provider is not enabled|unsupported provider/i.test(error?.message ?? "")
+      ? "Google sign-in isn't set up yet. Use a username and password for now."
+      : (error?.message ?? "Could not start Google sign-in.");
+    return { error: message };
+  }
   redirect(data.url);
 }

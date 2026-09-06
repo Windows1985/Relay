@@ -43,15 +43,22 @@ export function JoinForm() {
         </button>
       </form>
 
-      <div className="flex items-center gap-3 text-xs font-bold text-ink-2">
-        <span className="h-px flex-1 bg-line" />
-        or
-        <span className="h-px flex-1 bg-line" />
-      </div>
+      {/* Hidden unless Google is actually enabled in Supabase — a visible
+          button that always errors is worse than no button. Set
+          NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true once the provider is on. */}
+      {process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true" && (
+        <>
+          <div className="flex items-center gap-3 text-xs font-bold text-ink-2">
+            <span className="h-px flex-1 bg-line" />
+            or
+            <span className="h-px flex-1 bg-line" />
+          </div>
 
-      <button onClick={() => signInWithGoogle()} className="btn-secondary w-full">
-        Continue with Google
-      </button>
+          <button onClick={() => signInWithGoogle()} className="btn-secondary w-full">
+            Continue with Google
+          </button>
+        </>
+      )}
 
       <button
         onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
