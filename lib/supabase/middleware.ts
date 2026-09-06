@@ -49,16 +49,24 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && !isPublic && pathname !== "/pick-username") {
+  // One profile read covers both gates: pick a username, then see the intro
+  // once. Adding a second query here would tax every request in the app.
+  if (user && !isPublic && pathname !== "/pick-username" && pathname !== "/welcome") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username")
+      .select("username, onboarded")
       .eq("id", user.id)
       .single();
 
     if (!profile?.username) {
       const url = request.nextUrl.clone();
       url.pathname = "/pick-username";
+      return NextResponse.redirect(url);
+    }
+
+    if (!profile.onboarded) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/welcome";
       return NextResponse.redirect(url);
     }
   }

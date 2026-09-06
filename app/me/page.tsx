@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCosmeticsCssMap, ANIM_CLASS } from "@/lib/cosmetics";
 import { Name } from "@/components/Name";
-import { BagIcon, BellIcon, FlameIcon, ShieldIcon, UsersIcon } from "@/components/icons";
+import { BagIcon, BellIcon, FlameIcon, ShieldIcon, SparkIcon, UsersIcon } from "@/components/icons";
 import { signOut } from "./actions";
 
 export default async function MePage() {
@@ -20,7 +20,10 @@ export default async function MePage() {
     .single();
 
   const { data: bal } = await supabase.from("token_balances").select("balance").eq("user_id", user.id).maybeSingle();
-  const { data: memberships } = await supabase.from("memberships").select("groups(invite_code, name, streak)");
+  const { data: memberships } = await supabase
+    .from("memberships")
+    .select("groups(invite_code, name, streak)")
+    .eq("user_id", user.id);
   const groups = (memberships ?? [])
     .map((m) => m.groups as unknown as { invite_code: string; name: string; streak: number } | null)
     .filter((g): g is NonNullable<typeof g> => g !== null);
@@ -63,6 +66,10 @@ export default async function MePage() {
         <Link href="/install" className="flex items-center gap-3 rounded-2xl px-4 py-3 font-bold active:bg-paper-warm">
           <BellIcon size={22} className="text-g3" />
           Install & notifications
+        </Link>
+        <Link href="/welcome" className="flex items-center gap-3 rounded-2xl px-4 py-3 font-bold active:bg-paper-warm">
+          <SparkIcon size={22} className="text-g3" />
+          How Relay works
         </Link>
         {profile?.is_admin && (
           <Link href="/admin" className="flex items-center gap-3 rounded-2xl px-4 py-3 font-bold active:bg-paper-warm">

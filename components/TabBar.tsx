@@ -12,7 +12,7 @@ const TABS = [
   { href: "/me", label: "Me", Icon: UserIcon, match: (p: string) => p.startsWith("/me") || p.startsWith("/admin") || p.startsWith("/install") },
 ];
 
-const HIDDEN_ON = ["/join", "/pick-username", "/j/", "/auth/"];
+const HIDDEN_ON = ["/join", "/pick-username", "/j/", "/auth/", "/welcome"];
 
 export function TabBar() {
   const pathname = usePathname();

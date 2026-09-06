@@ -44,26 +44,49 @@ export function ShopList({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [animKey, setAnimKey] = useState(0);
 
-  function run(id: string, rpc: string, args: Record<string, unknown>, onOk: () => void) {
+  // Optimistic: apply the change locally on tap, roll it back if the RPC
+  // rejects. Waiting on the server made every shop tap feel broken.
+  function run(id: string, rpc: string, args: Record<string, unknown>, apply: () => void, revert: () => void) {
     setBusyId(id);
     setError(null);
+    apply();
     startTransition(async () => {
       const supabase = createClient();
       const { error: err } = await supabase.rpc(rpc, args);
       setBusyId(null);
-      if (err) return setError(err.message);
-      onOk();
+      if (err) {
+        revert();
+        return setError(err.message);
+      }
       router.refresh();
     });
   }
 
-  const buy = (c: Cosmetic) => run(c.id, "buy_cosmetic", { p_cosmetic_id: c.id }, () => setOwned((p) => new Set(p).add(c.id)));
-  const grant = (c: Cosmetic) => run(c.id, "admin_grant_cosmetic", { p_cosmetic_id: c.id }, () => setOwned((p) => new Set(p).add(c.id)));
-  const equip = (c: Cosmetic) =>
-    run(c.id, "equip_cosmetic", { p_cosmetic_id: c.id }, () => {
-      setEquipped((p) => ({ ...p, [c.kind]: c.id }));
-      setAnimKey((k) => k + 1);
-    });
+  function withoutId(id: string) {
+    return (prev: Set<string>) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    };
+  }
+
+  const buy = (c: Cosmetic) =>
+    run(c.id, "buy_cosmetic", { p_cosmetic_id: c.id }, () => setOwned((p) => new Set(p).add(c.id)), () => setOwned(withoutId(c.id)));
+  const grant = (c: Cosmetic) =>
+    run(c.id, "admin_grant_cosmetic", { p_cosmetic_id: c.id }, () => setOwned((p) => new Set(p).add(c.id)), () => setOwned(withoutId(c.id)));
+  const equip = (c: Cosmetic) => {
+    const previous = equipped[c.kind];
+    run(
+      c.id,
+      "equip_cosmetic",
+      { p_cosmetic_id: c.id },
+      () => {
+        setEquipped((p) => ({ ...p, [c.kind]: c.id }));
+        setAnimKey((k) => k + 1);
+      },
+      () => setEquipped((p) => ({ ...p, [c.kind]: previous })),
+    );
+  };
 
   const previewCss = equipped.colour ? cosmetics.find((c) => c.id === equipped.colour)?.css ?? null : null;
   const previewAnim = equipped.anim ? ANIM_CLASS[equipped.anim] ?? null : null;

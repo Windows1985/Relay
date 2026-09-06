@@ -14,7 +14,10 @@ export default async function AdminPage() {
   const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
   if (!profile?.is_admin) notFound();
 
-  const { data: memberships } = await supabase.from("memberships").select("groups(id, name, invite_code, tz)");
+  const { data: memberships } = await supabase
+    .from("memberships")
+    .select("groups(id, name, invite_code, tz)")
+    .eq("user_id", user.id);
   const groups = (memberships ?? [])
     .map((m) => m.groups as unknown as { id: string; name: string; invite_code: string; tz: string } | null)
     .filter((g): g is NonNullable<typeof g> => g !== null);

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getTodaysRound, getSubmittedCount } from "@/lib/rounds-data";
+import { getTodaysRound, getRoundProgress } from "@/lib/rounds-data";
 import { todayInZone, zonedTimeToUtc } from "@/lib/tz";
 import { ChannelStatus } from "@/components/ChannelStatus";
 import { EmailNudge } from "@/components/EmailNudge";
@@ -13,9 +13,13 @@ export default async function Home() {
   } = await supabase.auth.getUser();
   if (!user) return null; // proxy.ts redirects signed-out visitors to /join
 
+  // Filtered to this user: memberships RLS exposes every member's row for a
+  // group you're in, so without this the page rendered one identical card per
+  // member and did that many times the database work.
   const { data: memberships } = await supabase
     .from("memberships")
-    .select("groups(id, invite_code, name, streak, tz, window_start, window_end)");
+    .select("groups(id, invite_code, name, streak, tz, window_start, window_end)")
+    .eq("user_id", user.id);
 
   const groups = (memberships ?? [])
     .map((m) => m.groups as unknown as {
@@ -31,19 +35,42 @@ export default async function Home() {
 
   const bestStreak = groups.reduce((max, g) => Math.max(max, g.streak), 0);
   const hasRealEmail = !user.email?.endsWith("@id.relay.app");
-  const streakWorthProtecting = bestStreak >= 3;
+
+  // All groups resolved concurrently, and each group's follow-up queries too.
+  const cards = await Promise.all(
+    groups.map(async (group) => {
+      const round = await getTodaysRound(supabase, group.id, group.tz);
+
+      const [progress, voteRow] = await Promise.all([
+        round ? getRoundProgress(supabase, round.id, user.id) : Promise.resolve({ submittedCount: 0, hasSubmitted: false }),
+        round?.needs_vote
+          ? supabase.from("votes").select("voter_id").eq("round_id", round.id).eq("voter_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+
+      const today = todayInZone(group.tz);
+      return {
+        group,
+        round,
+        progress,
+        hasVoted: voteRow.data !== null,
+        estimatedOpensAt: zonedTimeToUtc(today, group.window_start.slice(0, 5), group.tz).toISOString(),
+        estimatedWindowEnd: zonedTimeToUtc(today, group.window_end.slice(0, 5), group.tz).toISOString(),
+      };
+    }),
+  );
 
   return (
     <main className="page flex flex-col gap-5">
       <header className="flex items-center justify-between py-1">
         <h1 className="font-display text-2xl font-bold tracking-tight">Relay</h1>
         <span className="badge-sunset">
-          <FlameIcon size={16} />
+          <FlameIcon size={18} />
           {bestStreak}
         </span>
       </header>
 
-      {!hasRealEmail && streakWorthProtecting && <EmailNudge />}
+      {!hasRealEmail && bestStreak >= 3 && <EmailNudge />}
 
       {groups.length === 0 && (
         <section className="card flex flex-col items-center gap-4 p-6 text-center">
@@ -65,44 +92,20 @@ export default async function Home() {
         </section>
       )}
 
-      {await Promise.all(
-        groups.map(async (group) => {
-          const round = await getTodaysRound(supabase, group.id, group.tz);
-          let submittedCount = 0;
-          let hasSubmitted = false;
-          let hasVoted = false;
-          if (round) {
-            submittedCount = await getSubmittedCount(supabase, round.id);
-            hasSubmitted =
-              submittedCount > 0
-                ? (await supabase.from("submissions").select("user_id").eq("round_id", round.id).eq("user_id", user.id).maybeSingle()).data !== null
-                : false;
-            if (round.needs_vote) {
-              hasVoted =
-                (await supabase.from("votes").select("voter_id").eq("round_id", round.id).eq("voter_id", user.id).maybeSingle()).data !== null;
-            }
-          }
-
-          const today = todayInZone(group.tz);
-          const estimatedOpensAt = zonedTimeToUtc(today, group.window_start.slice(0, 5), group.tz).toISOString();
-          const estimatedWindowEnd = zonedTimeToUtc(today, group.window_end.slice(0, 5), group.tz).toISOString();
-
-          return (
-            <ChannelStatus
-              key={group.invite_code}
-              group={group}
-              round={round}
-              roundId={round?.id ?? null}
-              rosterSize={round?.roster.length ?? null}
-              estimatedOpensAt={estimatedOpensAt}
-              estimatedWindowEnd={estimatedWindowEnd}
-              hasSubmitted={hasSubmitted}
-              hasVoted={hasVoted}
-              submittedCount={submittedCount}
-            />
-          );
-        }),
-      )}
+      {cards.map(({ group, round, progress, hasVoted, estimatedOpensAt, estimatedWindowEnd }) => (
+        <ChannelStatus
+          key={group.id}
+          group={group}
+          round={round}
+          roundId={round?.id ?? null}
+          rosterSize={round?.roster.length ?? null}
+          estimatedOpensAt={estimatedOpensAt}
+          estimatedWindowEnd={estimatedWindowEnd}
+          hasSubmitted={progress.hasSubmitted}
+          hasVoted={hasVoted}
+          submittedCount={progress.submittedCount}
+        />
+      ))}
 
       {groups.length > 0 && (
         <div className="flex gap-3">

@@ -63,7 +63,14 @@ export async function getTodaysRound(
   };
 }
 
-export async function getSubmittedCount(supabase: SupabaseClient, roundId: string): Promise<number> {
+// One call answers both "how many played" and "did I play" — asking those
+// separately cost an extra round trip per group on every home render.
+export async function getRoundProgress(
+  supabase: SupabaseClient,
+  roundId: string,
+  userId: string,
+): Promise<{ submittedCount: number; hasSubmitted: boolean }> {
   const { data } = await supabase.rpc("round_progress", { p_round_id: roundId });
-  return data?.length ?? 0;
+  const rows = (data ?? []) as { user_id: string }[];
+  return { submittedCount: rows.length, hasSubmitted: rows.some((r) => r.user_id === userId) };
 }

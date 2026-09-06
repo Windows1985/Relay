@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { GameShell } from "@/components/games/GameShell";
 import { MotionGame } from "@/components/games/MotionGame";
+import { FlipGame } from "@/components/games/FlipGame";
+import { CircleTraceGame } from "@/components/games/CircleTraceGame";
 import { StopAtTargetGame } from "@/components/games/StopAtTargetGame";
 import { TapFastGame } from "@/components/games/TapFastGame";
 import { ReactionGame } from "@/components/games/ReactionGame";
@@ -51,11 +53,16 @@ export default async function PlayPage({
     rosterUsernames = (profiles ?? []).map((p) => ({ id: p.id, username: p.username ?? "?" }));
   }
 
+  // Dispatch on mode_id first: several games share an input_type but are not
+  // the same game (shake / flip / circle-trace are all "motion").
   let game: React.ReactNode;
-  if (mode.input_type === "motion") game = <MotionGame roundId={round.id} durationMs={mode.duration_ms ?? 15000} />;
+  if (round.mode_id === "shake") game = <MotionGame roundId={round.id} durationMs={mode.duration_ms ?? 15000} />;
+  else if (round.mode_id === "flip") game = <FlipGame roundId={round.id} durationMs={mode.duration_ms ?? 20000} />;
+  else if (round.mode_id === "circle_trace") game = <CircleTraceGame roundId={round.id} />;
   else if (round.mode_id === "stop10") game = <StopAtTargetGame roundId={round.id} targetMs={mode.target ?? 10000} />;
   else if (round.mode_id === "tap_fast") game = <TapFastGame roundId={round.id} durationMs={mode.duration_ms ?? 10000} />;
   else if (round.mode_id === "reaction") game = <ReactionGame roundId={round.id} />;
+  else if (mode.input_type === "motion") game = <MotionGame roundId={round.id} durationMs={mode.duration_ms ?? 15000} />;
   else if (mode.input_type === "photo") game = <PhotoGame roundId={round.id} />;
   else if (mode.input_type === "text") game = <TextGame roundId={round.id} />;
   else if (mode.input_type === "name_pick")

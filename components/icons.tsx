@@ -62,11 +62,12 @@ export function UserIcon({ size = 24, className }: IconProps) {
   );
 }
 
+// Fills the 24x24 box the way every other glyph does — the previous path
+// only occupied the middle third, so it read as a dot next to a streak number.
 export function FlameIcon({ size = 24, className }: IconProps) {
   return (
     <svg {...base(size, className)}>
-      <path d="M12 3c1 3 4 4.5 4 8.5A4 4 0 0 1 8 12c0-1 .4-2 1-2.5.2 1 .8 1.5 1.5 1.5C11.5 8 10.5 5 12 3Z" />
-      <path d="M8 12a4 4 0 0 0 8 0" />
+      <path d="M12 2.5c.7 4 3.4 5.4 5 7.6 1.1 1.5 1.5 3 1.5 4.6a6.5 6.5 0 0 1-13 0c0-2.2.9-4.2 2.4-5.6.2 1.6 1.1 2.6 2.4 3C11.3 9 10.1 5.4 12 2.5Z" />
     </svg>
   );
 }

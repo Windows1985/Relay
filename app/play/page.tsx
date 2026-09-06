@@ -13,7 +13,10 @@ export default async function PlayIndexPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/join");
 
-  const { data: memberships } = await supabase.from("memberships").select("groups(id, tz, window_start)");
+  const { data: memberships } = await supabase
+    .from("memberships")
+    .select("groups(id, tz, window_start)")
+    .eq("user_id", user.id);
   const groups = (memberships ?? [])
     .map((m) => m.groups as unknown as { id: string; tz: string; window_start: string } | null)
     .filter((g): g is NonNullable<typeof g> => g !== null);

@@ -301,6 +301,16 @@ body {
   animation: entry-typewriter 0.6s steps(20, end) 1;
 }
 
+@keyframes skeleton-sweep {
+  to { background-position: -200% 0; }
+}
+.skeleton {
+  display: block;
+  background: linear-gradient(90deg, var(--line) 25%, var(--paper-warm) 37%, var(--line) 63%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s linear infinite;
+}
+
 /* The one authored motion moment: the ring completing when you post. */
 @keyframes ring-complete {
   0% { transform: scale(1); }

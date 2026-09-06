@@ -70,7 +70,11 @@ export function RevealView({
   const [reported, setReported] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
+  // Optimistic: the heart fills on tap and only reverts if the write fails,
+  // so voting never waits on a round trip.
   async function castVote(targetUserId: string) {
+    const previous = voted;
+    setVoted(targetUserId);
     setBusy(targetUserId);
     setError(null);
     const supabase = createClient();
@@ -78,8 +82,10 @@ export function RevealView({
       .from("votes")
       .insert({ round_id: roundId, voter_id: currentUserId, target_user_id: targetUserId });
     setBusy(null);
-    if (err) return setError("Couldn't save your vote. Try again.");
-    setVoted(targetUserId);
+    if (err) {
+      setVoted(previous);
+      return setError("Couldn't save your vote. Try again.");
+    }
     router.refresh();
   }
 
