@@ -49,9 +49,11 @@ export default async function GroupHomePage({
           {group.freezes < 2 && <FreezeBuyButton groupId={group.id} canAfford={balance >= 40} />}
         </div>
 
-        <div className="flex gap-4 text-sm text-ink-dim underline">
+        <div className="flex flex-wrap justify-center gap-4 text-sm text-ink-dim underline">
           <Link href={`/g/${group.invite_code}/members`}>Members</Link>
           <Link href={`/g/${group.invite_code}/settings`}>Settings</Link>
+          <Link href={`/g/${group.invite_code}/leaderboard`}>Leaderboard</Link>
+          <Link href="/leaderboard">Global streaks</Link>
         </div>
       </div>
       <Link href="/" className="text-xs text-ink-dim underline">
