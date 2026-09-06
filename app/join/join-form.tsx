@@ -11,8 +11,10 @@ export function JoinForm() {
   });
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-6">
-      <h1 className="text-center text-2xl font-semibold">Relay</h1>
+    <div className="bezel flex w-full max-w-sm flex-col gap-6 px-6 py-10">
+      <h1 className="text-center font-mono led-text text-2xl font-bold uppercase tracking-widest">
+        Relay
+      </h1>
 
       <form action={formAction} className="flex flex-col gap-3">
         <input
@@ -20,7 +22,7 @@ export function JoinForm() {
           placeholder="Username"
           autoComplete="username"
           required
-          className="rounded border px-3 py-2"
+          className="input-bezel px-3 py-2"
         />
         <input
           name="password"
@@ -29,28 +31,25 @@ export function JoinForm() {
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
           required
           minLength={8}
-          className="rounded border px-3 py-2"
+          className="input-bezel px-3 py-2"
         />
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state.error && <p className="text-sm text-danger">{state.error}</p>}
         <button
           type="submit"
           disabled={pending}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="btn-tactile py-3 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
         >
           {mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
 
-      <button
-        onClick={() => signInWithGoogle()}
-        className="rounded border px-3 py-2"
-      >
+      <button onClick={() => signInWithGoogle()} className="btn-ghost py-3 text-sm font-medium">
         Continue with Google
       </button>
 
       <button
         onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-        className="text-sm text-zinc-500 underline"
+        className="text-sm text-ink-dim underline"
       >
         {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
       </button>

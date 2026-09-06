@@ -15,13 +15,13 @@ export function PickUsernameForm() {
         placeholder="Username"
         autoComplete="username"
         required
-        className="rounded border px-3 py-2"
+        className="input-bezel px-3 py-2"
       />
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+        className="btn-tactile py-3 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
       >
         Continue
       </button>

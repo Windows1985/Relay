@@ -15,20 +15,22 @@ export default function NewGroupPage() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center p-8">
-      <form action={formAction} className="flex w-full max-w-sm flex-col gap-3">
-        <h1 className="text-center text-2xl font-semibold">Start a group</h1>
+      <form action={formAction} className="bezel flex w-full max-w-sm flex-col gap-3 px-6 py-10">
+        <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
+          Start a group
+        </h1>
         <input type="hidden" name="tz" value={tz} />
         <input
           name="name"
           placeholder="Group name"
           required
-          className="rounded border px-3 py-2"
+          className="input-bezel px-3 py-2"
         />
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state.error && <p className="text-sm text-danger">{state.error}</p>}
         <button
           type="submit"
           disabled={pending || !tz}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="btn-tactile py-3 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
         >
           Create
         </button>

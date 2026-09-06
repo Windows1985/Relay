@@ -24,7 +24,7 @@ export function RemoveMemberButton({
           removeMember(groupId, userId, inviteCode, isSelf);
         })
       }
-      className="text-sm text-red-600 underline disabled:opacity-50"
+      className="text-sm text-danger underline disabled:opacity-50"
     >
       {isSelf ? "Leave" : "Remove"}
     </button>

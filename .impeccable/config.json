@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 0, 0, 0.4)",
+        "createdAt": "2026-09-06T05:03:21.558Z",
+        "reason": "shadow-blur black for .btn-tactile's box-shadow, already documented in prose under DESIGN.md's Elevation > Shadow Vocabulary; not a missing palette color"
+      }
+    ]
+  }
+}

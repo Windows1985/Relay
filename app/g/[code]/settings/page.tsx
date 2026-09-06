@@ -18,8 +18,10 @@ export default async function GroupSettingsPage({
 
   return (
     <main className="flex flex-1 flex-col items-center p-8">
-      <div className="flex w-full max-w-sm flex-col gap-3">
-        <h1 className="text-center text-2xl font-semibold">Group settings</h1>
+      <div className="bezel flex w-full max-w-sm flex-col gap-3 px-6 py-10">
+        <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
+          Group settings
+        </h1>
         <SettingsForm group={group} />
       </div>
     </main>

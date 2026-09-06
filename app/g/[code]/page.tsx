@@ -19,18 +19,25 @@ export default async function GroupHomePage({
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-      <h1 className="text-2xl font-semibold">{group.name}</h1>
-      <p className="text-zinc-500">
-        Streak: {group.streak} &middot; {group.window_start}–{group.window_end} {group.tz}
-      </p>
-      <p className="text-sm text-zinc-500">
-        Invite code: <span className="font-mono">{group.invite_code}</span>
-      </p>
-      <p className="text-zinc-400">Round engine lands next phase.</p>
-      <div className="flex gap-4 text-sm underline">
-        <Link href={`/g/${group.invite_code}/members`}>Members</Link>
-        <Link href={`/g/${group.invite_code}/settings`}>Settings</Link>
+      <div className="bezel flex w-full max-w-sm flex-col items-center gap-3 px-6 py-10">
+        <h1 className="font-mono led-text text-xl font-bold uppercase tracking-widest">
+          {group.name}
+        </h1>
+        <p className="text-sm text-ink-dim">
+          Streak: {group.streak} &middot; {group.window_start.slice(0, 5)}–{group.window_end.slice(0, 5)}{" "}
+          {group.tz}
+        </p>
+        <p className="text-sm text-ink-dim">
+          Invite code: <span className="font-mono text-ink">{group.invite_code}</span>
+        </p>
+        <div className="flex gap-4 text-sm text-ink-dim underline">
+          <Link href={`/g/${group.invite_code}/members`}>Members</Link>
+          <Link href={`/g/${group.invite_code}/settings`}>Settings</Link>
+        </div>
       </div>
+      <Link href="/" className="text-xs text-ink-dim underline">
+        Back home
+      </Link>
     </main>
   );
 }

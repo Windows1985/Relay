@@ -18,9 +18,11 @@ export default async function PickUsernamePage() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center p-8">
-      <div className="flex w-full max-w-sm flex-col gap-4">
-        <h1 className="text-center text-2xl font-semibold">Pick a username</h1>
-        <p className="text-center text-sm text-zinc-500">
+      <div className="bezel flex w-full max-w-sm flex-col gap-4 px-6 py-10">
+        <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
+          Pick a username
+        </h1>
+        <p className="text-center text-sm text-ink-dim">
           This is what your group sees. Google doesn&apos;t give us one for you.
         </p>
         <PickUsernameForm />

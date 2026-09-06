@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getTodaysRound, getSubmittedCount } from "@/lib/rounds-data";
+import { todayInZone, zonedTimeToUtc } from "@/lib/tz";
+import { ChannelStatus } from "@/components/ChannelStatus";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -7,34 +10,91 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Placeholder — Phase 4 replaces this with the real "tonight's state"
-  // screen (opens-at countdown / live / revealed / settled), derived
-  // from lib/round.ts, and a switcher across a user's groups.
-  const { data: memberships } = user
-    ? await supabase.from("memberships").select("groups(name, invite_code)")
-    : { data: null };
+  if (!user) {
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center p-8">
+        <div className="text-2xl font-semibold">Relay</div>
+      </main>
+    );
+  }
+
+  const { data: memberships } = await supabase
+    .from("memberships")
+    .select("groups(id, invite_code, name, streak, tz, window_start)");
+
+  const groups = (memberships ?? [])
+    .map((m) => m.groups as unknown as {
+      id: string;
+      invite_code: string;
+      name: string;
+      streak: number;
+      tz: string;
+      window_start: string;
+    } | null)
+    .filter((g): g is NonNullable<typeof g> => g !== null);
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-      <h1 className="text-2xl font-semibold">Relay</h1>
-      {memberships?.length ? (
-        <ul className="flex flex-col gap-2">
-          {memberships.map((m, i) => {
-            const group = m.groups as unknown as { name: string; invite_code: string } | null;
-            if (!group) return null;
-            return (
-              <li key={i}>
-                <Link href={`/g/${group.invite_code}`} className="underline">
-                  {group.name}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className="text-zinc-500">No groups yet.</p>
+    <main className="flex flex-1 flex-col items-center gap-6 p-6">
+      <h1 className="font-mono text-lg font-bold uppercase tracking-[0.3em] text-ink-dim">
+        Relay
+      </h1>
+
+      {groups.length === 0 && (
+        <div className="bezel w-full max-w-sm px-6 py-8 text-center text-ink-dim">
+          No channels yet.
+        </div>
       )}
-      <div className="flex gap-4 text-sm underline">
+
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        {await Promise.all(
+          groups.map(async (group) => {
+            const round = await getTodaysRound(supabase, group.id, group.tz);
+            let submittedCount = 0;
+            let hasSubmitted = false;
+            let hasVoted = false;
+            if (round) {
+              submittedCount = await getSubmittedCount(supabase, round.id);
+              hasSubmitted = submittedCount > 0
+                ? (await supabase.from("submissions").select("user_id").eq("round_id", round.id).eq("user_id", user.id).maybeSingle()).data !== null
+                : false;
+              if (round.needs_vote) {
+                hasVoted = (
+                  await supabase.from("votes").select("voter_id").eq("round_id", round.id).eq("voter_id", user.id).maybeSingle()
+                ).data !== null;
+              }
+            }
+
+            const estimatedOpensAt = zonedTimeToUtc(
+              todayInZone(group.tz),
+              group.window_start.slice(0, 5),
+              group.tz,
+            ).toISOString();
+
+            return (
+              <div key={group.invite_code} className="flex flex-col gap-2">
+                <ChannelStatus
+                  group={group}
+                  round={round}
+                  roundId={round?.id ?? null}
+                  rosterSize={round?.roster.length ?? null}
+                  estimatedOpensAt={estimatedOpensAt}
+                  hasSubmitted={hasSubmitted}
+                  hasVoted={hasVoted}
+                  submittedCount={submittedCount}
+                />
+                <Link
+                  href={`/g/${group.invite_code}`}
+                  className="text-center text-xs text-ink-dim underline"
+                >
+                  Group settings &amp; members
+                </Link>
+              </div>
+            );
+          }),
+        )}
+      </div>
+
+      <div className="flex gap-4 text-sm text-ink-dim underline">
         <Link href="/g/new">Start a group</Link>
         <Link href="/g/join">Join a group</Link>
       </div>

@@ -30,14 +30,13 @@ export default async function MembersPage({
 
   return (
     <main className="flex flex-1 flex-col items-center p-8">
-      <div className="flex w-full max-w-sm flex-col gap-3">
-        <h1 className="text-center text-2xl font-semibold">Members</h1>
+      <div className="bezel flex w-full max-w-sm flex-col gap-3 px-6 py-10">
+        <h1 className="text-center font-mono led-text text-xl font-bold uppercase tracking-widest">
+          Members
+        </h1>
         <ul className="flex flex-col gap-2">
           {members?.map((m) => (
-            <li
-              key={m.user_id}
-              className="flex items-center justify-between rounded border px-3 py-2"
-            >
+            <li key={m.user_id} className="bezel-inset flex items-center justify-between px-3 py-2">
               <span>{(m.profiles as unknown as { username: string } | null)?.username}</span>
               {(isCreator || m.user_id === user?.id) && (
                 <RemoveMemberButton
