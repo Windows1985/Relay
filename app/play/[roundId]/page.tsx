@@ -5,6 +5,8 @@ import { GameShell } from "@/components/games/GameShell";
 import { MotionGame } from "@/components/games/MotionGame";
 import { FlipGame } from "@/components/games/FlipGame";
 import { CircleTraceGame } from "@/components/games/CircleTraceGame";
+import { HoldButtonGame } from "@/components/games/HoldButtonGame";
+import { MemoryGame } from "@/components/games/MemoryGame";
 import { StopAtTargetGame } from "@/components/games/StopAtTargetGame";
 import { TapFastGame } from "@/components/games/TapFastGame";
 import { ReactionGame } from "@/components/games/ReactionGame";
@@ -62,6 +64,8 @@ export default async function PlayPage({
   else if (round.mode_id === "stop10") game = <StopAtTargetGame roundId={round.id} targetMs={mode.target ?? 10000} />;
   else if (round.mode_id === "tap_fast") game = <TapFastGame roundId={round.id} durationMs={mode.duration_ms ?? 10000} />;
   else if (round.mode_id === "reaction") game = <ReactionGame roundId={round.id} />;
+  else if (round.mode_id === "hold_button") game = <HoldButtonGame roundId={round.id} targetMs={mode.target ?? 8000} />;
+  else if (round.mode_id === "memory") game = <MemoryGame roundId={round.id} />;
   else if (mode.input_type === "motion") game = <MotionGame roundId={round.id} durationMs={mode.duration_ms ?? 15000} />;
   else if (mode.input_type === "photo") game = <PhotoGame roundId={round.id} />;
   else if (mode.input_type === "text") game = <TextGame roundId={round.id} />;

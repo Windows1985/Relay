@@ -55,15 +55,17 @@ export function ChannelStatus({
     return () => clearInterval(tick);
   }, []);
 
-  // Poll for the phase transitions tick() makes on its own schedule. Runs
-  // once: router.refresh is captured via closure.
+  const phase = deriveRoundPhase(round, now, hasSubmitted, hasVoted);
+
+  // Poll for phase changes made elsewhere — most importantly the reveal, which
+  // now fires the instant the last player submits. Waiting on someone else is
+  // the one moment worth checking often; every other state can idle.
+  const waitingOnOthers = phase.kind === "live" && phase.hasSubmitted;
   useEffect(() => {
-    const poll = setInterval(() => router.refresh(), 15000);
+    const poll = setInterval(() => router.refresh(), waitingOnOthers ? 4000 : 20000);
     return () => clearInterval(poll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const phase = deriveRoundPhase(round, now, hasSubmitted, hasVoted);
+  }, [waitingOnOthers]);
   const live = phase.kind === "live" || phase.kind === "voting" || phase.kind === "settled";
   const played = `${submittedCount}${rosterSize ? ` of ${rosterSize}` : ""} played`;
 
@@ -152,7 +154,11 @@ export function ChannelStatus({
 
   return (
     <section className="card flex w-full flex-col items-center gap-4 p-6 text-center">
-      <div className={`ring ${live ? "" : "ring-muted"} ${phase.kind === "live" && phase.hasSubmitted ? "ring-complete" : ""}`}>
+      <div
+        className={`ring ${live ? "" : "ring-muted"} ${
+          phase.kind === "live" && phase.hasSubmitted ? "ring-complete" : ""
+        } ${phase.kind === "live" && !phase.hasSubmitted ? "ring-live" : ""}`}
+      >
         <div className="ring-inner h-40 w-40">{ringContent}</div>
       </div>
 

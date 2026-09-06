@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Name } from "@/components/Name";
 import { ANIM_CLASS, type CosmeticCss } from "@/lib/cosmetics";
 import { FlameIcon, HeartIcon } from "@/components/icons";
 import { modeCopy } from "@/lib/modes";
+import { tap, celebrate } from "@/lib/haptics";
 
 type Submission = {
   userId: string;
@@ -74,6 +75,7 @@ export function RevealView({
   // so voting never waits on a round trip.
   async function castVote(targetUserId: string) {
     const previous = voted;
+    tap();
     setVoted(targetUserId);
     setBusy(targetUserId);
     setError(null);
@@ -103,6 +105,11 @@ export function RevealView({
   const canVoteNow = needsVote && votingOpen && voted === null;
   const winner = submissions.find((s) => s.userId === winnerId);
   const { title } = modeCopy(modeId);
+
+  // One celebratory buzz when a settled result first renders.
+  useEffect(() => {
+    if (settled && winnerId) celebrate();
+  }, [settled, winnerId]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -149,14 +156,21 @@ export function RevealView({
 
       {submissions
         .filter((s) => !s.hidden || s.userId === currentUserId)
-        .map((s) => {
+        .map((s, i) => {
           const isWinner = settled && winnerId === s.userId;
           const isMine = s.userId === currentUserId;
           const mineVote = voted === s.userId;
           const showHeart = scoring === "vote";
           const heartActive = mineVote || (settled && s.voteCount > 0);
           return (
-            <article key={s.userId} className="card flex flex-col gap-3 p-4" style={isWinner ? { boxShadow: "0 0 0 2.5px var(--g3), var(--shadow-card)" } : undefined}>
+            <article
+              key={s.userId}
+              className={`card rise-in flex flex-col gap-3 p-4 ${isWinner ? "winner-pop" : ""}`}
+              style={{
+                ["--i" as string]: i,
+                ...(isWinner ? { boxShadow: "0 0 0 2.5px var(--g3), var(--shadow-card)" } : {}),
+              }}
+            >
               <header className="flex items-center gap-3">
                 <span className="avatar">{s.username.slice(0, 1).toUpperCase()}</span>
                 <span className="flex-1 font-bold">

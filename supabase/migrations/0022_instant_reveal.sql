@@ -1,0 +1,6 @@
+-- tick()'s SETTLE pass delegates to settle_round(); OPEN and REVEAL are
+-- unchanged. REVEAL still handles the window-close case (the stragglers path),
+-- which no submission can trigger.
+-- submit_round now closes the round itself when it completes the roster, and
+-- returns whether the reveal is live so the client can route straight there.
+-- See 0023 for the current body of both functions (new game range guards).

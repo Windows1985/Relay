@@ -329,3 +329,75 @@ body {
 .heart-pop {
   animation: heart-pop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
 }
+
+/* --- Microinteractions ------------------------------------------------ */
+
+/* Feed cards arrive one after another instead of all at once. Depth is
+   staggered inline with --i so the reveal reads top-to-bottom. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in {
+  opacity: 0;
+  animation: rise-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* A live round's ring breathes so the home screen reads as "something is
+   happening" from across the room. */
+@keyframes ring-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(193, 53, 132, 0.28); }
+  50% { box-shadow: 0 0 0 10px rgba(193, 53, 132, 0); }
+}
+.ring-live {
+  animation: ring-breathe 2.4s ease-out infinite;
+  border-radius: 999px;
+}
+
+/* Held button swells slightly and drops its glow — reads as pressure. */
+.btn-primary.is-holding {
+  transform: scale(1.04);
+  box-shadow: 0 2px 8px rgba(193, 53, 132, 0.2);
+  transition: transform 0.25s ease-out;
+}
+
+/* Winner card lands with a small pop rather than simply existing. */
+@keyframes winner-pop {
+  0% { transform: scale(0.94); }
+  60% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.winner-pop {
+  animation: winner-pop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
+/* Tab icon settles into place when it becomes current — a single decelerating
+   move, no overshoot. */
+@keyframes tab-settle {
+  from { transform: translateY(3px) scale(0.9); opacity: 0.6; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.tab[aria-current="page"] svg {
+  animation: tab-settle 0.3s cubic-bezier(0.16, 1, 0.3, 1) 1;
+}
+
+/* Pressable rows and cards acknowledge the touch. */
+.press {
+  transition: transform 0.1s ease-out;
+}
+.press:active {
+  transform: scale(0.985);
+}
+
+/* Anyone who asked the OS for less motion gets none of the above. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .rise-in { opacity: 1; }
+}
