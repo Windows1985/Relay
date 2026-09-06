@@ -52,11 +52,15 @@ export function ChannelStatus({
 
   // Poll the server for phase transitions tick() makes on its own schedule
   // (reveal, settle) — the client can only compute the opens-at countdown
-  // itself.
+  // itself. Deliberately runs once (empty deps): router.refresh is captured
+  // once via closure, and re-keying this effect off `router` risked
+  // tearing down and rebuilding the interval on every refresh if that
+  // object isn't referentially stable across renders.
   useEffect(() => {
     const poll = setInterval(() => router.refresh(), 15000);
     return () => clearInterval(poll);
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const phase = deriveRoundPhase(round, now, hasSubmitted, hasVoted);
 
