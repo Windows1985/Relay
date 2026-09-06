@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { RevealView } from "@/components/RevealView";
 import { getCosmeticsCssMap } from "@/lib/cosmetics";
+import { InstallAndNotify } from "@/components/InstallAndNotify";
 
 export default async function RevealPage({
   params,
@@ -70,6 +71,7 @@ export default async function RevealPage({
 
   return (
     <main className="flex flex-1 flex-col items-center gap-6 p-6">
+      <InstallAndNotify />
       <RevealView
         roundId={round.id}
         currentUserId={user.id}
