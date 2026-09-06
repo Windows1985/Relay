@@ -46,6 +46,23 @@ These can't be done via API/MCP and are one-time steps:
 
 5. **Confirm "Confirm email" stays off** in Supabase Auth → Sign In / Providers → Email. Relay signs up users with a synthetic `@id.relay.app` address (no real inbox), so a confirmation-required flow would permanently lock every username/password signup out.
 
+## Admin panel
+
+The account with username `test1` is flagged `profiles.is_admin` (migration `0018_admin.sql`). Signed in as that account, **Me → Admin panel** (`/admin`) can:
+
+- open any game in one of its own groups right now, ignoring the nightly window and player minimums (replacing tonight's round if one exists — confirmed inline, deletes that round's submissions);
+- reveal a live round immediately, or close voting and settle it immediately;
+- own every shop cosmetic for free (the Shop also shows a "Free (admin)" action per item).
+
+To make another account an admin: `update profiles set is_admin = true where username = '...'`. Clients can't set that column themselves.
+
+## Installing as an app (PWA)
+
+Relay is a normal website that installs to the home screen — there is no app store listing. In the app, **Me → Install & notifications** (`/install`) walks through it per platform (iOS Safari: Share → Add to Home Screen; Android Chrome: the install prompt or ⋮ → Install app). Two things worth knowing:
+
+- The installed app has its own login storage, so a user may be asked to sign in once more there — that's why Relay uses real accounts instead of device storage.
+- Push notifications only reach iPhones from the installed app (and not at all for EU users on iOS 17.4+); the home tab's "3 of 6 played" state is the fallback that never depends on them.
+
 ## Database
 
 Schema lives in `supabase/migrations/*.sql`, applied in order. They were built and verified directly against the live project rather than through the Supabase CLI's local-stack workflow, so there's no `supabase/config.toml` — if you want local Postgres for development, `supabase init` and re-apply these migrations against it.
