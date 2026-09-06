@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Name } from "@/components/Name";
 import { ANIM_CLASS, type CosmeticCss } from "@/lib/cosmetics";
-import { FlameIcon, HeartIcon } from "@/components/icons";
+import { FlameIcon, HeartIcon, LockIcon } from "@/components/icons";
 import { modeCopy } from "@/lib/modes";
 import { tap, celebrate } from "@/lib/haptics";
 
@@ -186,10 +186,18 @@ export function RevealView({
                 )}
               </header>
 
-              {inputType === "photo" && s.photoUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.photoUrl} alt={`${s.username}'s photo`} className="aspect-square w-full rounded-2xl object-cover" />
-              )}
+              {inputType === "photo" &&
+                (s.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.photoUrl} alt={`${s.username}'s photo`} className="aspect-square w-full rounded-2xl object-cover" />
+                ) : (
+                  <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-2xl bg-paper-warm text-center">
+                    <LockIcon size={26} className="text-ink-2" />
+                    <p className="px-6 text-sm font-bold text-ink-2">
+                      {s.hidden ? "Removed after a report" : "Photo deleted when the round closed"}
+                    </p>
+                  </div>
+                ))}
               {inputType === "text" && typeof s.payload.text === "string" && (
                 <p className="font-display text-xl font-semibold leading-snug">{s.payload.text}</p>
               )}

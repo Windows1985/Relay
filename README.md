@@ -26,10 +26,17 @@ To get friends in, send them a group **invite link** (`/j/<CODE>`, from the grou
 
 Works right now with no further setup: sign-up, groups, all 19 games, voting, streaks, freezes, tokens, the shop and both leaderboards.
 
-Does **not** work until the environment variables below are set on Vercel:
+**Photo deletion** needs one SQL statement, run once in the Supabase SQL editor (Dashboard → SQL Editor). Photos are deleted straight from the database via the Storage API, so this does not involve Vercel at all:
 
-- **Push notifications** — nobody gets nudged when a game opens; the home screen's live state is the fallback.
-- **Automatic photo deletion.** The spec's promise is that photos are deleted from storage when a round settles, and that a reported photo is deleted rather than just hidden. Both happen through a webhook that is currently rejecting calls, so **photos are being retained**. Reporting still hides an image from the group immediately. Worth closing before testing with anyone outside your friend group.
+```sql
+update app_settings
+set value = 'YOUR_SERVICE_ROLE_KEY'
+where key = 'service_role_key';
+```
+
+Get the key from Project Settings → API → `service_role`. Until it's set, `purge_round_photos()` no-ops and photos are retained — the spec's promise is that they're deleted when a round settles, and that a reported photo is deleted rather than merely hidden. Reporting still hides an image from the group immediately either way. The key lives in `app_settings`, which has RLS on and no policies, so no client can read it.
+
+**Push notifications** are the one thing that still needs Vercel env vars (`SUPABASE_SERVICE_ROLE_KEY`, the three VAPID values, `RELAY_WEBHOOK_SECRET`) — web push has to be signed server-side. Without them nobody gets nudged when a game opens, and the home screen's live state is the fallback.
 
 Google sign-in is hidden unless `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`, so testers don't meet a button that errors. Username and password is the simplest path for testing — you can skip Google entirely.
 
