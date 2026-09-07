@@ -1,0 +1,10 @@
+-- Push moves from the Next.js routes (which needed env vars nobody had set on
+-- Vercel) to the `push` Supabase Edge Function (supabase/functions/push), so
+-- it needs no deployment configuration at all. tick() calls that function via
+-- pg_net at round-open and at the two-hours-left reminder; the anon key
+-- satisfies the function's verify_jwt and webhook_secret is the real
+-- authorisation. OPEN/REVEAL/SETTLE logic is otherwise unchanged from 0023.
+--
+-- Settings this relies on (all in app_settings, RLS on with no policies):
+--   project_url, anon_key, webhook_secret, vapid_public/private/subject
+-- See the applied migration for the full tick() body.

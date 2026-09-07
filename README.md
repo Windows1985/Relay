@@ -36,7 +36,7 @@ where key = 'service_role_key';
 
 Get the key from Project Settings → API → `service_role`. Until it's set, `purge_round_photos()` no-ops and photos are retained — the spec's promise is that they're deleted when a round settles, and that a reported photo is deleted rather than merely hidden. Reporting still hides an image from the group immediately either way. The key lives in `app_settings`, which has RLS on and no policies, so no client can read it.
 
-**Push notifications** are the one thing that still needs Vercel env vars (`SUPABASE_SERVICE_ROLE_KEY`, the three VAPID values, `RELAY_WEBHOOK_SECRET`) — web push has to be signed server-side. Without them nobody gets nudged when a game opens, and the home screen's live state is the fallback.
+**Push notifications** work with no deployment configuration. Web push has to be signed server-side, so it runs as the `push` Supabase Edge Function (`supabase/functions/push`) rather than in the Next.js app: Supabase injects the service-role key into the edge runtime, and the VAPID keypair lives in `app_settings`. `tick()` calls it via pg_net at round-open and at the two-hours-left mark. Players still have to grant notification permission per device (Me → Install & notifications), and on iPhone that only works from the installed home-screen app.
 
 Google sign-in is hidden unless `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`, so testers don't meet a button that errors. Username and password is the simplest path for testing — you can skip Google entirely.
 

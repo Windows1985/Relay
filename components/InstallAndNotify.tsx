@@ -5,6 +5,15 @@ import { BellIcon, DownloadIcon } from "@/components/icons";
 
 const DISMISSED_KEY = "relay_install_prompt_dismissed";
 
+// The VAPID *public* key is public by design — it is handed to Google/Mozilla's
+// push services and stored inside every browser subscription. Shipping it as a
+// default means subscribing works with no deployment configuration; the env var
+// still wins if a different keypair is ever used. The private half lives only
+// in the database, read by the push Edge Function.
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+  "BLwVnbe1LzCFXVa4ofPqVSZ02ZANaUMXweLbsa_tmGXK-CWRVam6m5yhShLF5VrfHUEb4vOyGIs7PurzODlCeV0";
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -57,7 +66,7 @@ export function InstallAndNotify({ always = false }: { always?: boolean }) {
     const registration = await navigator.serviceWorker.ready;
     const sub = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
     });
     await fetch("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub.toJSON()) });
     setStatus("subscribed");
